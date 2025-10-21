@@ -1,0 +1,10 @@
+# Beads database files
+.beads/
+*.db
+
+# Build artifacts
+beads-webui
+
+# IDE files
+*.swp
+*.swo
