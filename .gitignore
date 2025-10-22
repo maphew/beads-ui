@@ -3,7 +3,8 @@
 *.db
 
 # Build artifacts
-beads-webui
+bd-ui
+bd-ui.exe
 
 # IDE files
 *.swp

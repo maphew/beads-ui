@@ -18,4 +18,4 @@ require (
 	modernc.org/sqlite v1.38.2 // indirect
 )
 
-replace github.com/steveyegge/beads => ../
+replace github.com/steveyegge/beads => ../beads
