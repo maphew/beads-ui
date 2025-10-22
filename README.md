@@ -4,7 +4,12 @@ Standalone web UI for the beads issue tracker.
 
 ## Overview
 
-This is a standalone web interface for [beads](https://github.com/steveyegge/beads), a dependency-aware issue tracker. It provides a graphical interface for browsing and visualizing issues, dependencies, and work status.
+This is a standalone web interface for [beads](https://github.com/steveyegge/beads), a
+dependency-aware issue tracker. It provides a graphical interface for browsing and
+visualizing issues, dependencies, and work status.
+
+The PR which started it: 
+https://github.com/steveyegge/beads/pull/77
 
 ## Features
 
@@ -26,13 +31,13 @@ This is a standalone web interface for [beads](https://github.com/steveyegge/bea
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/steveyegge/beads-webui.git
+   git clone https://github.com/maphew/beads-webui.git
    cd beads-webui
    ```
 
 2. Build the web UI:
    ```bash
-   go build -o beads-webui .
+   go build -o bd-ui .
    ```
 
 ## Usage
