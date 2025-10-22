@@ -44,18 +44,29 @@ https://github.com/steveyegge/beads/pull/77
 
 ## Usage
 
-Run the web UI with a path to a beads database:
+Run the web UI with an optional path to a beads database:
 
 ```bash
-./beads-webui /path/to/.beads/db.sqlite [port]
+./beads-webui [path/to/.beads/db.sqlite] [port]
 ```
 
-For example:
+For example, to use autodiscovery:
+```bash
+./beads-webui 8080
+```
+
+Or specify a path:
 ```bash
 ./beads-webui .beads/db.sqlite 8080
 ```
 
 The web UI will start on `http://127.0.0.1:8080` (or the specified port).
+
+### Autodiscovery
+
+If no database path is provided, the application will automatically search for a beads database in the current directory and standard locations (e.g., `.beads/db.sqlite`).
+
+If no database is found, it will fall back to creating a new empty database.
 
 ## Development
 

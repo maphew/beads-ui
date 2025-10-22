@@ -41,23 +41,28 @@ func init() {
 var store beads.Storage
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s <database-path> [port]\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Example: %s .beads/db.sqlite 8080\n", os.Args[0])
+	if len(os.Args) < 1 {
+		fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port]\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Examples:\n")
+		fmt.Fprintf(os.Stderr, "  %s                    # autodiscover database\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite   # specify database path\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite 8080  # specify path and port\n", os.Args[0])
 		os.Exit(1)
 	}
 
-	dbPath := os.Args[1]
+	var dbPath string
 	port := "8080"
-	if len(os.Args) > 2 {
-		port = os.Args[2]
+	if len(os.Args) > 1 {
+		dbPath = os.Args[1]
+		if len(os.Args) > 2 {
+			port = os.Args[2]
+		}
 	}
 
 	// Open database
 	var err error
-	store, err = beads.NewSQLiteStorage(dbPath)
-	if err != nil {
-		// Try using the beads package to find the database
+	if dbPath == "" {
+		// No path provided, try autodiscovery first
 		if foundDB := beads.FindDatabasePath(); foundDB != "" {
 			store, err = beads.NewSQLiteStorage(foundDB)
 			if err != nil {
@@ -65,8 +70,24 @@ func main() {
 				os.Exit(1)
 			}
 		} else {
-			fmt.Fprintf(os.Stderr, "Error opening database: %v\n", err)
+			fmt.Fprintf(os.Stderr, "No database path provided and no database found via autodiscovery\n")
 			os.Exit(1)
+		}
+	} else {
+		// Path provided, try it first
+		store, err = beads.NewSQLiteStorage(dbPath)
+		if err != nil {
+			// Try autodiscovery
+			if foundDB := beads.FindDatabasePath(); foundDB != "" {
+				store, err = beads.NewSQLiteStorage(foundDB)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error opening database: %v\n", err)
+					os.Exit(1)
+				}
+			} else {
+				fmt.Fprintf(os.Stderr, "Error opening database: %v\n", err)
+				os.Exit(1)
+			}
 		}
 	}
 
