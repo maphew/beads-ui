@@ -1,6 +1,5 @@
 # Beads database files
-.beads/
-*.db
+.beads/*.db
 
 # Build artifacts
 bd-ui
