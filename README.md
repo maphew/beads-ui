@@ -8,6 +8,8 @@ This is a standalone web interface for [beads](https://github.com/steveyegge/bea
 dependency-aware issue tracker. It provides a graphical interface for browsing and
 visualizing issues, dependencies, and work status.
 
+I've long been enamoured of Fossil-SCM and it's github-in-a-box nature, featuring a first class CLI and a strong web ui with commit timeline and issue tracker all wrapped up in a single executable (plus the db). It strikes me that Beads is excellently poised to do the same thing. This project is an experiment to see what that might entail. Feedback welcome.
+
 The PR which started it: 
 https://github.com/steveyegge/beads/pull/77
 
