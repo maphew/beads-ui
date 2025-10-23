@@ -144,10 +144,13 @@ func startFileWatcher() {
 				return
 			}
 			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) {
+				log.Printf("File changed: %s", event.Name)
 				// Re-parse templates if a template file changed
 				if strings.HasPrefix(event.Name, "templates/") && strings.HasSuffix(event.Name, ".html") {
+					log.Printf("Re-parsing templates")
 					parseTemplates()
 				}
+				log.Printf("Broadcasting reload to clients")
 				broadcast("reload")
 			}
 		case err, ok := <-watcher.Errors:
@@ -252,6 +255,7 @@ func main() {
 	fmt.Printf("Press Ctrl+C to stop\n")
 
 	if *devMode {
+		log.Printf("Starting file watcher for live reload")
 		go startFileWatcher()
 	}
 
