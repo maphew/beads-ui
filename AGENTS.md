@@ -18,6 +18,9 @@ Follow Conventional Commits (`feat:`, `fix:`, `chore:`) and keep commit bodies f
 ## Security & Configuration Tips
 Never commit secrets; load them from `.env` or environment variables using packages like `godotenv` and document required keys in `docs/configuration.md`. Validate outbound API calls and sanitize user input to avoid injection attacks. Rotate API keys quarterly and audit service capabilities whenever new integrations are introduced.
 
+## Reference information
+`~/OneDrive/dev/llms-txt/` - Instructions for LLMs and AI code editors on how to use various tools and libraries.
+
 ## Issue Tracking with bd (beads)
 
 **IMPORTANT**: This project uses **bd (beads)** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
