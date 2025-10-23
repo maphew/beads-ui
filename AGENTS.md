@@ -1,22 +1,30 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
-Keep executables under `cmd/` with a `main.go` entry point, internal packages in `internal/` (private to this module), and reusable libraries in `pkg/` (public APIs). Supporting data, prompts, or fixture assets belong in `assets/` with subfolders that mirror the consuming package. Tests live alongside code as `*_test.go` files and use the `testdata/` directory for fixtures. Temporary experiments go in `examples/` or a `_scratch/` directory and may be pruned at review time.
+## Architecture & Codebase Structure
+This is a standalone Go web application providing a UI for the beads issue tracker. Key components:
+- **Main application**: Single `main.go` file with embedded HTML templates (`templates/*.html`) and static assets (`static/*.css`, `static/*.js`)
+- **Database**: SQLite via beads library (modernc.org/sqlite)
+- **Web framework**: Standard library HTTP with gorilla/websocket for real-time updates
+- **UI**: HTMX for dynamic updates, Graphviz for dependency visualization
+- **Development**: File watcher with live reload in dev mode (`-d` flag)
 
 ## Build, Test, and Development Commands
-Initialize the module with `go mod init` if starting fresh, then run `go mod download` to fetch dependencies declared in `go.mod`. Use `go mod tidy` to prune unused dependencies and update `go.sum`. Run `golangci-lint run` or `make lint` for static analysis, `go test ./...` for the full test suite, and `go run main.go` or `go run ./cmd/...` to execute the default entry point. When iterating quickly, use `go test ./internal/<package>` to scope to a specific package, or `go build -o bin/app ./cmd/...` to compile a binary.
+- **Build**: `go build -o bd-ui .`
+- **Run**: `./bd-ui [database-path] [port]` (autodiscovers `.beads/db.sqlite` if no path)
+- **Development**: `./bd-ui -d` for live reload mode
+- **Test database**: `cd cmd && go run create_test_db_main.go /path/to/test.db`
+- **Single test**: `go test -run TestFunctionName` (when tests exist)
+- **All tests**: `go test ./...` (no tests currently implemented)
 
 ## Coding Style & Naming Conventions
-Follow Effective Go guidelines with tab indentation, Go's static typing, and doc comments that describe package purpose and exported functions. Use lowercase package names (e.g., `research`, `tools`) and PascalCase for exported types and functions (`ResearchAgent`, `ParseQuery`). Shared utilities should avoid init-time side effects. Keep public functions under 40 lines, favoring helper functions over deeply nested logic. Run `gofmt -s -w .`, `goimports -w .`, and `golangci-lint run` before opening a pull request.
-
-## Testing Guidelines
-Write tests using Go's testing package that mirror the behavioral seams of each component. Use `<feature>_test.go` filenames and descriptive test functions (`TestResearchAgentHandlesRateLimits`). Provide test helpers and table-driven tests for common scenarios; place fixture data in `testdata/` directories. Maintain >=90% statement coverage (`go test -cover`) and add regression tests for every bug fix. Include integration tests with build tags (`//go:build integration`) or separate `*_integration_test.go` files whenever a component relies on multiple services.
-
-## Commit & Pull Request Guidelines
-Follow Conventional Commits (`feat:`, `fix:`, `chore:`) and keep commit bodies focused on the why and the rollout impact. Squash noisy WIP commits. Pull requests need a summary, testing notes, linked issue IDs, and screenshots or logs if behavior changes. Tag reviewers responsible for the touched components, and ensure CI (lint, tests, type checks) is green before requesting review.
-
-## Security & Configuration Tips
-Never commit secrets; load them from `.env` or environment variables using packages like `godotenv` and document required keys in `docs/configuration.md`. Validate outbound API calls and sanitize user input to avoid injection attacks. Rotate API keys quarterly and audit service capabilities whenever new integrations are introduced.
+Follow Effective Go with these project specifics:
+- Single main package with all HTTP handlers in `main.go`
+- Use `context.Context` for all database operations
+- Error handling: Return errors from handlers, let HTTP framework handle them
+- Templates use Go html/template with embedded FS (`//go:embed`)
+- WebSocket connections managed with sync.Mutex for thread safety
+- Function organization: HTTP handlers first, then utilities/helpers
+- Run `gofmt -s -w .` and `goimports -w .` before commits
 
 ## Reference information
 `~/OneDrive/dev/llms-txt/` - Instructions for LLMs and AI code editors on how to use various tools and libraries.
