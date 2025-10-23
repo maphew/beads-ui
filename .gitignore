@@ -2,8 +2,6 @@
 bd-ui
 bd-ui.exe
 
-# Local beads database
-.beads/
 
 # IDE files
 *.swp
