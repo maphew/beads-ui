@@ -4,20 +4,29 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"html/template"
+	"io/fs"
+	"log"
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
+	"github.com/gorilla/websocket"
 	"github.com/steveyegge/beads"
 )
 
 //go:embed templates/*.html static/*.css static/*.js
 var embedFS embed.FS
+
+var tmplFS fs.FS
 
 // Pre-parse templates at package init for performance
 var (
@@ -30,33 +39,157 @@ var (
 )
 
 func init() {
-	tmplIndex = template.Must(template.ParseFS(embedFS, "templates/index.html"))
-	tmplDetail = template.Must(template.ParseFS(embedFS, "templates/detail.html"))
-	tmplGraph = template.Must(template.ParseFS(embedFS, "templates/graph.html"))
-	tmplReady = template.Must(template.ParseFS(embedFS, "templates/ready.html"))
-	tmplBlocked = template.Must(template.ParseFS(embedFS, "templates/blocked.html"))
-	tmplIssuesTbody = template.Must(template.ParseFS(embedFS, "templates/issues_tbody.html"))
+	tmplFS = embedFS
+	// Templates will be parsed after flag parsing
+}
+
+func parseTemplates() {
+	tmplIndex = template.Must(template.ParseFS(tmplFS, "templates/index.html"))
+	tmplDetail = template.Must(template.ParseFS(tmplFS, "templates/detail.html"))
+	tmplGraph = template.Must(template.ParseFS(tmplFS, "templates/graph.html"))
+	tmplReady = template.Must(template.ParseFS(tmplFS, "templates/ready.html"))
+	tmplBlocked = template.Must(template.ParseFS(tmplFS, "templates/blocked.html"))
+	tmplIssuesTbody = template.Must(template.ParseFS(tmplFS, "templates/issues_tbody.html"))
 }
 
 var store beads.Storage
 
+var devMode = flag.Bool("d", false, "Enable development mode with live reload")
+
+var help = flag.Bool("h", false, "Show help")
+
+func printUsage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port] [-d] [-h]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Options:\n")
+	fmt.Fprintf(os.Stderr, "  -d, --dev    Enable development mode with live reload\n")
+	fmt.Fprintf(os.Stderr, "  -h, --help   Show help\n")
+	fmt.Fprintf(os.Stderr, "Examples:\n")
+	fmt.Fprintf(os.Stderr, "  %s                    # autodiscover database\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite   # specify database path\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite 8080  # specify path and port\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s -d .beads/db.sqlite 8080  # enable live reload\n", os.Args[0])
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true }, // Allow all origins for dev
+}
+
+var clients = make(map[*websocket.Conn]bool)
+var clientsMu sync.Mutex
+
+func broadcast(message string) {
+	clientsMu.Lock()
+	defer clientsMu.Unlock()
+	for conn := range clients {
+		if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+			conn.Close()
+			delete(clients, conn)
+		}
+	}
+}
+
+func handleWS(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("WebSocket upgrade failed:", err)
+		return
+	}
+	defer conn.Close()
+
+	clientsMu.Lock()
+	clients[conn] = true
+	clientsMu.Unlock()
+
+	defer func() {
+		clientsMu.Lock()
+		delete(clients, conn)
+		clientsMu.Unlock()
+	}()
+
+	for {
+		_, _, err := conn.ReadMessage()
+		if err != nil {
+			break
+		}
+	}
+}
+
+func startFileWatcher() {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal("Failed to create file watcher:", err)
+	}
+	defer watcher.Close()
+
+	// Add all files in templates and static directories
+	addFiles := func(dir string) {
+		filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !info.IsDir() {
+				watcher.Add(path)
+			}
+			return nil
+		})
+	}
+
+	addFiles("templates")
+	addFiles("static")
+
+	for {
+		select {
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return
+			}
+			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) {
+				log.Printf("File changed: %s", event.Name)
+				// Re-parse templates if a template file changed
+				if strings.HasPrefix(event.Name, "templates/") && strings.HasSuffix(event.Name, ".html") {
+					log.Printf("Re-parsing templates")
+					parseTemplates()
+				}
+				log.Printf("Broadcasting reload to clients")
+				broadcast("reload")
+			}
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return
+			}
+			log.Println("Watcher error:", err)
+		}
+	}
+}
+
 func main() {
-	if len(os.Args) < 1 {
-		fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port]\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Examples:\n")
-		fmt.Fprintf(os.Stderr, "  %s                    # autodiscover database\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite   # specify database path\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite 8080  # specify path and port\n", os.Args[0])
+	flag.Usage = printUsage
+	flag.Parse()
+	if *help {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	// Set filesystem for templates and static files
+	if *devMode {
+		tmplFS = os.DirFS(".")
+	}
+	parseTemplates()
+
+	args := flag.Args()
+
+	if len(args) > 2 {
+		printUsage()
 		os.Exit(1)
 	}
 
 	var dbPath string
 	port := "8080"
-	if len(os.Args) > 1 {
-		dbPath = os.Args[1]
-		if len(os.Args) > 2 {
-			port = os.Args[2]
-		}
+	if len(args) > 0 {
+		dbPath = args[0]
+	}
+	if len(args) > 1 {
+		port = args[1]
 	}
 
 	// Open database
@@ -102,6 +235,9 @@ func main() {
 	mux.HandleFunc("/api/issues", handleAPIIssues)
 	mux.HandleFunc("/api/issue/", handleAPIIssue)
 	mux.HandleFunc("/api/stats", handleAPIStats)
+	if *devMode {
+		mux.HandleFunc("/ws", handleWS)
+	}
 	mux.HandleFunc("/static/", handleStatic)
 
 	srv := &http.Server{
@@ -113,7 +249,15 @@ func main() {
 	}
 
 	fmt.Printf("Starting beads web UI at http://%s\n", addr)
+	if *devMode {
+		fmt.Printf("Development mode enabled with live reload\n")
+	}
 	fmt.Printf("Press Ctrl+C to stop\n")
+
+	if *devMode {
+		log.Printf("Starting file watcher for live reload")
+		go startFileWatcher()
+	}
 
 	if err := srv.ListenAndServe(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
@@ -506,10 +650,10 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 		contentType = "application/javascript; charset=utf-8"
 	}
 
-	content, err := embedFS.ReadFile("static/" + path)
+	content, err := fs.ReadFile(tmplFS, "static/"+path)
 	if err != nil {
 		// Try templates directory as fallback (for backward compatibility)
-		content, err = embedFS.ReadFile("templates/" + path)
+		content, err = fs.ReadFile(tmplFS, "templates/"+path)
 		if err != nil {
 			http.NotFound(w, r)
 			return
