@@ -29,35 +29,53 @@ https://github.com/steveyegge/beads/pull/77
 - Go 1.21 or later
 - A beads database file
 
+### Quick install from Git
+
+Install directly using `go install`:
+
+```bash
+go install github.com/maphew/beads-ui@latest
+```
+
+This will install the `beads-ui` binary to your `$GOPATH/bin` (usually `~/go/bin`).
+
 ### Building from source
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/maphew/beads-webui.git
-   cd beads-webui
+   git clone https://github.com/maphew/beads-ui.git
+   cd beads-ui
    ```
 
 2. Build the web UI:
    ```bash
-   go build -o bd-ui .
+   go build -o beads-ui .
    ```
+
+### Local development with beads
+
+If you're developing both beads-ui and beads together:
+
+1. Clone both repositories side by side
+2. Uncomment the `replace` directive in `go.mod`
+3. Run `go mod tidy`
 
 ## Usage
 
 Run the web UI with an optional path to a beads database:
 
 ```bash
-./beads-webui [path/to/.beads/db.sqlite] [port]
+./beads-ui [path/to/.beads/db.sqlite] [port]
 ```
 
 For example, to use autodiscovery:
 ```bash
-./beads-webui 8080
+./beads-ui 8080
 ```
 
 Or specify a path:
 ```bash
-./beads-webui .beads/db.sqlite 8080
+./beads-ui .beads/db.sqlite 8080
 ```
 
 The web UI will start on `http://127.0.0.1:8080` (or the specified port).
