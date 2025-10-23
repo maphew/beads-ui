@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log"
 	"net"
 	"net/http"
@@ -25,6 +26,8 @@ import (
 //go:embed templates/*.html static/*.css static/*.js
 var embedFS embed.FS
 
+var tmplFS fs.FS
+
 // Pre-parse templates at package init for performance
 var (
 	tmplIndex       *template.Template
@@ -36,12 +39,17 @@ var (
 )
 
 func init() {
-	tmplIndex = template.Must(template.ParseFS(embedFS, "templates/index.html"))
-	tmplDetail = template.Must(template.ParseFS(embedFS, "templates/detail.html"))
-	tmplGraph = template.Must(template.ParseFS(embedFS, "templates/graph.html"))
-	tmplReady = template.Must(template.ParseFS(embedFS, "templates/ready.html"))
-	tmplBlocked = template.Must(template.ParseFS(embedFS, "templates/blocked.html"))
-	tmplIssuesTbody = template.Must(template.ParseFS(embedFS, "templates/issues_tbody.html"))
+	tmplFS = embedFS
+	// Templates will be parsed after flag parsing
+}
+
+func parseTemplates() {
+	tmplIndex = template.Must(template.ParseFS(tmplFS, "templates/index.html"))
+	tmplDetail = template.Must(template.ParseFS(tmplFS, "templates/detail.html"))
+	tmplGraph = template.Must(template.ParseFS(tmplFS, "templates/graph.html"))
+	tmplReady = template.Must(template.ParseFS(tmplFS, "templates/ready.html"))
+	tmplBlocked = template.Must(template.ParseFS(tmplFS, "templates/blocked.html"))
+	tmplIssuesTbody = template.Must(template.ParseFS(tmplFS, "templates/issues_tbody.html"))
 }
 
 var store beads.Storage
@@ -136,6 +144,10 @@ func startFileWatcher() {
 				return
 			}
 			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) {
+				// Re-parse templates if a template file changed
+				if strings.HasPrefix(event.Name, "templates/") && strings.HasSuffix(event.Name, ".html") {
+					parseTemplates()
+				}
 				broadcast("reload")
 			}
 		case err, ok := <-watcher.Errors:
@@ -154,6 +166,13 @@ func main() {
 		flag.Usage()
 		os.Exit(0)
 	}
+
+	// Set filesystem for templates and static files
+	if *devMode {
+		tmplFS = os.DirFS(".")
+	}
+	parseTemplates()
+
 	args := flag.Args()
 
 	if len(args) > 2 {
@@ -627,10 +646,10 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 		contentType = "application/javascript; charset=utf-8"
 	}
 
-	content, err := embedFS.ReadFile("static/" + path)
+	content, err := fs.ReadFile(tmplFS, "static/"+path)
 	if err != nil {
 		// Try templates directory as fallback (for backward compatibility)
-		content, err = embedFS.ReadFile("templates/" + path)
+		content, err = fs.ReadFile(tmplFS, "templates/"+path)
 		if err != nil {
 			http.NotFound(w, r)
 			return
