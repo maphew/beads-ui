@@ -6,13 +6,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"log"
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
+	"github.com/gorilla/websocket"
 	"github.com/steveyegge/beads"
 )
 
@@ -39,6 +44,91 @@ func init() {
 }
 
 var store beads.Storage
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true }, // Allow all origins for dev
+}
+
+var clients = make(map[*websocket.Conn]bool)
+var clientsMu sync.Mutex
+
+func broadcast(message string) {
+	clientsMu.Lock()
+	defer clientsMu.Unlock()
+	for conn := range clients {
+		if err := conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+			conn.Close()
+			delete(clients, conn)
+		}
+	}
+}
+
+func handleWS(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("WebSocket upgrade failed:", err)
+		return
+	}
+	defer conn.Close()
+
+	clientsMu.Lock()
+	clients[conn] = true
+	clientsMu.Unlock()
+
+	defer func() {
+		clientsMu.Lock()
+		delete(clients, conn)
+		clientsMu.Unlock()
+	}()
+
+	for {
+		_, _, err := conn.ReadMessage()
+		if err != nil {
+			break
+		}
+	}
+}
+
+func startFileWatcher() {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal("Failed to create file watcher:", err)
+	}
+	defer watcher.Close()
+
+	// Add all files in templates and static directories
+	addFiles := func(dir string) {
+		filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !info.IsDir() {
+				watcher.Add(path)
+			}
+			return nil
+		})
+	}
+
+	addFiles("templates")
+	addFiles("static")
+
+	for {
+		select {
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return
+			}
+			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) {
+				broadcast("reload")
+			}
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return
+			}
+			log.Println("Watcher error:", err)
+		}
+	}
+}
 
 func main() {
 	if len(os.Args) < 1 {
@@ -102,6 +192,7 @@ func main() {
 	mux.HandleFunc("/api/issues", handleAPIIssues)
 	mux.HandleFunc("/api/issue/", handleAPIIssue)
 	mux.HandleFunc("/api/stats", handleAPIStats)
+	mux.HandleFunc("/ws", handleWS)
 	mux.HandleFunc("/static/", handleStatic)
 
 	srv := &http.Server{
@@ -114,6 +205,8 @@ func main() {
 
 	fmt.Printf("Starting beads web UI at http://%s\n", addr)
 	fmt.Printf("Press Ctrl+C to stop\n")
+
+	go startFileWatcher()
 
 	if err := srv.ListenAndServe(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
