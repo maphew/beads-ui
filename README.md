@@ -44,21 +44,21 @@ https://github.com/steveyegge/beads/pull/77
 
 ## Usage
 
-Run the web UI with an optional path to a beads database:
+Run the web UI with an optional path to a beads database and port:
 
 ```bash
-./beads-webui [path/to/.beads/db.sqlite] [port]
+./bd-ui [database-path] [port] [-d] [-h]
 ```
 
-For example, to use autodiscovery:
-```bash
-./beads-webui 8080
-```
+Options:
+- `-d, --dev`: Enable development mode with live reload
+- `-h, --help`: Show help
 
-Or specify a path:
-```bash
-./beads-webui .beads/db.sqlite 8080
-```
+Examples:
+- `./bd-ui` - Autodiscover database, use default port 8080
+- `./bd-ui .beads/db.sqlite` - Specify database path, use default port 8080
+- `./bd-ui .beads/db.sqlite 8080` - Specify database path and port
+- `./bd-ui -d .beads/db.sqlite 8080` - Enable live reload with specific database and port
 
 The web UI will start on `http://127.0.0.1:8080` (or the specified port).
 
@@ -70,10 +70,16 @@ If no database is found, it will fall back to creating a new empty database.
 
 ## Development
 
-To run the web UI in development mode:
+To run the web UI in development mode with live reload:
 
 ```bash
-go run main.go /path/to/.beads/db.sqlite
+./bd-ui -d [database-path] [port]
+```
+
+Or run directly from source:
+
+```bash
+go run main.go -d [database-path] [port]
 ```
 
 To create a test database with sample issues:
