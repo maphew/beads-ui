@@ -4,31 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ready Work - beads</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 </head>
 <body>
     <header>
-        <h1><a href="/">🔗 beads</a></h1>
-        <nav class="nav-menu">
-            <a href="/">All Issues</a>
-            <a href="/ready" class="active">Ready Work</a>
-            <a href="/blocked">Blocked</a>
-        </nav>
-        <div class="stats">
-            <span class="stat">Open: {{.Stats.OpenIssues}}</span>
-            <span class="stat">In Progress: {{.Stats.InProgressIssues}}</span>
-            <span class="stat">Closed: {{.Stats.ClosedIssues}}</span>
-        </div>
+    <nav>
+        <ul>
+        <li><strong><a href="/">🔗 beads</a></strong></li>
+    </ul>
+    <ul>
+            <li><a href="/">All Issues</a></li>
+            <li><a href="/ready">Ready Work</a></li>
+        <li><a href="/blocked">Blocked</a></li>
+    </ul>
+    </nav>
     </header>
 
     <main>
-        <div class="page-header">
-            <h2>✅ Ready Work</h2>
-            <p>Issues with no open blockers - ready to start</p>
-        </div>
+        <hgroup>
+        <h2>✅ Ready Work</h2>
+        <p>Issues with no open blockers - ready to start</p>
+        </hgroup>
 
         {{if .Issues}}
-        <table class="issues-table">
+        <table>
             <thead>
                 <tr>
                     <th>ID</th>
@@ -70,9 +69,7 @@
             </tbody>
         </table>
         {{else}}
-        <div class="empty-state">
-            <p>🎉 No unblocked issues! Everything is either blocked or completed.</p>
-        </div>
+        <p>🎉 No unblocked issues! Everything is either blocked or completed.</p>
         {{end}}
     </main>
 </body>

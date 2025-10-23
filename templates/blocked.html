@@ -4,61 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blocked Issues - beads</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 </head>
 <body>
     <header>
-        <h1><a href="/">🔗 beads</a></h1>
-        <nav class="nav-menu">
-            <a href="/">All Issues</a>
-            <a href="/ready">Ready Work</a>
-            <a href="/blocked" class="active">Blocked</a>
-        </nav>
-        <div class="stats">
-            <span class="stat">Open: {{.Stats.OpenIssues}}</span>
-            <span class="stat">In Progress: {{.Stats.InProgressIssues}}</span>
-            <span class="stat">Closed: {{.Stats.ClosedIssues}}</span>
-        </div>
+    <nav>
+        <ul>
+        <li><strong><a href="/">🔗 beads</a></strong></li>
+    </ul>
+    <ul>
+            <li><a href="/">All Issues</a></li>
+            <li><a href="/ready">Ready Work</a></li>
+        <li><a href="/blocked">Blocked</a></li>
+    </ul>
+    </nav>
     </header>
 
     <main>
-        <div class="page-header">
-            <h2>🚧 Blocked Issues</h2>
-            <p>Issues waiting on open dependencies</p>
-        </div>
+        <hgroup>
+        <h2>🚧 Blocked Issues</h2>
+        <p>Issues waiting on open dependencies</p>
+        </hgroup>
 
         {{if .Blocked}}
-        <div class="blocked-list">
             {{range .Blocked}}
-            <div class="blocked-card">
-                <div class="blocked-issue">
-                    <h3><a href="/issue/{{.Issue.ID}}">{{.Issue.ID}}: {{.Issue.Title}}</a></h3>
-                    <div class="blocked-meta">
-                        <span class="badge status-{{.Issue.Status}}">{{.Issue.Status}}</span>
-                        <span class="badge priority-{{.Issue.Priority}}">P{{.Issue.Priority}}</span>
-                        <span class="badge type-{{.Issue.IssueType}}">{{.Issue.IssueType}}</span>
-                    </div>
-                </div>
-                
-                <div class="blockers-section">
-                    <h4>🔒 Blocked by {{len .OpenBlockers}} open {{if eq (len .OpenBlockers) 1}}issue{{else}}issues{{end}}:</h4>
-                    <ul class="blockers-list">
-                        {{range .OpenBlockers}}
-                        <li>
-                            <a href="/issue/{{.ID}}">{{.ID}}</a> - {{.Title}}
-                            <span class="badge status-{{.Status}}">{{.Status}}</span>
-                            <span class="badge priority-{{.Priority}}">P{{.Priority}}</span>
-                        </li>
-                        {{end}}
-                    </ul>
-                </div>
-            </div>
+            <article>
+            <header>
+            <h3><a href="/issue/{{.Issue.ID}}">{{.Issue.ID}}: {{.Issue.Title}}</a></h3>
+            <p>
+            <kbd>{{.Issue.Status}}</kbd>
+            <kbd>P{{.Issue.Priority}}</kbd>
+            <kbd>{{.Issue.IssueType}}</kbd>
+            </p>
+            </header>
+
+            <section>
+            <h4>🔒 Blocked by {{len .OpenBlockers}} open {{if eq (len .OpenBlockers) 1}}issue{{else}}issues{{end}}:</h4>
+            <ul>
+            {{range .OpenBlockers}}
+            <li>
+            <a href="/issue/{{.ID}}">{{.ID}}</a> - {{.Title}}
+            <kbd>{{.Status}}</kbd>
+            <kbd>P{{.Priority}}</kbd>
+            </li>
             {{end}}
-        </div>
+            </ul>
+            </section>
+            </article>
+            {{end}}
         {{else}}
-        <div class="empty-state">
-            <p>🎉 No blocked issues! All open issues are ready to work on.</p>
-        </div>
+        <p>🎉 No blocked issues! All open issues are ready to work on.</p>
         {{end}}
     </main>
 </body>

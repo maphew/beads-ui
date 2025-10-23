@@ -4,48 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>beads - Issue Tracker</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
     <header>
-        <h1><a href="/">🔗 beads</a></h1>
-        <nav class="nav-menu">
-            <a href="/" class="active">All Issues</a>
-            <a href="/ready">Ready Work</a>
-            <a href="/blocked">Blocked</a>
-        </nav>
-        <div class="stats">
-            <span class="stat">Open: {{.Stats.OpenIssues}}</span>
-            <span class="stat">In Progress: {{.Stats.InProgressIssues}}</span>
-            <span class="stat">Closed: {{.Stats.ClosedIssues}}</span>
-        </div>
+    <nav>
+        <ul>
+        <li><strong><a href="/">🔗 beads</a></strong></li>
+    </ul>
+    <ul>
+            <li><a href="/">All Issues</a></li>
+            <li><a href="/ready">Ready Work</a></li>
+        <li><a href="/blocked">Blocked</a></li>
+    </ul>
+    </nav>
     </header>
 
     <main>
-        <div class="filters" 
-             hx-get="/api/issues" 
-             hx-trigger="change, keyup delay:300ms from:#search"
-             hx-target="#issues-tbody"
-             hx-include="[name='status'],[name='priority'],[name='search']">
-            <input type="text" name="search" placeholder="Search issues...">
-            <select name="status">
-                <option value="">All Statuses</option>
-                <option value="open">Open</option>
-                <option value="in_progress">In Progress</option>
-                <option value="closed">Closed</option>
-            </select>
-            <select name="priority">
-                <option value="">All Priorities</option>
-                <option value="0">P0 - Critical</option>
-                <option value="1">P1 - High</option>
-                <option value="2">P2 - Medium</option>
-                <option value="3">P3 - Low</option>
-                <option value="4">P4 - Backlog</option>
-            </select>
-        </div>
+        <fieldset>
+        <input type="text" name="search" placeholder="Search issues..." hx-get="/api/issues" hx-trigger="keyup delay:300ms" hx-target="#issues-tbody">
+        <select name="status" hx-get="/api/issues" hx-trigger="change" hx-target="#issues-tbody" hx-include="[name='search'],[name='priority']">
+          <option value="">All Statuses</option>
+          <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="closed">Closed</option>
+        </select>
+        <select name="priority" hx-get="/api/issues" hx-trigger="change" hx-target="#issues-tbody" hx-include="[name='search'],[name='status']">
+        <option value="">All Priorities</option>
+        <option value="0">P0 - Critical</option>
+            <option value="1">P1 - High</option>
+            <option value="2">P2 - Medium</option>
+        <option value="3">P3 - Low</option>
+        <option value="4">P4 - Backlog</option>
+        </select>
+        </fieldset>
 
-        <table class="issues-table">
+        <table>
             <thead>
                 <tr>
                     <th>ID</th>
