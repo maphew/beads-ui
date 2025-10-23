@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"html/template"
 	"log"
@@ -44,6 +45,8 @@ func init() {
 }
 
 var store beads.Storage
+
+var devMode = flag.Bool("dev", false, "Enable development mode with live reload")
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true }, // Allow all origins for dev
@@ -131,22 +134,26 @@ func startFileWatcher() {
 }
 
 func main() {
-	if len(os.Args) < 1 {
-		fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port]\n", os.Args[0])
+	flag.Parse()
+	args := flag.Args()
+
+	if len(args) > 2 {
+		fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port] [--dev]\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Examples:\n")
 		fmt.Fprintf(os.Stderr, "  %s                    # autodiscover database\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite   # specify database path\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite 8080  # specify path and port\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s --dev .beads/db.sqlite 8080  # enable live reload\n", os.Args[0])
 		os.Exit(1)
 	}
 
 	var dbPath string
 	port := "8080"
-	if len(os.Args) > 1 {
-		dbPath = os.Args[1]
-		if len(os.Args) > 2 {
-			port = os.Args[2]
-		}
+	if len(args) > 0 {
+		dbPath = args[0]
+	}
+	if len(args) > 1 {
+		port = args[1]
 	}
 
 	// Open database
@@ -192,7 +199,9 @@ func main() {
 	mux.HandleFunc("/api/issues", handleAPIIssues)
 	mux.HandleFunc("/api/issue/", handleAPIIssue)
 	mux.HandleFunc("/api/stats", handleAPIStats)
-	mux.HandleFunc("/ws", handleWS)
+	if *devMode {
+		mux.HandleFunc("/ws", handleWS)
+	}
 	mux.HandleFunc("/static/", handleStatic)
 
 	srv := &http.Server{
@@ -204,9 +213,14 @@ func main() {
 	}
 
 	fmt.Printf("Starting beads web UI at http://%s\n", addr)
+	if *devMode {
+		fmt.Printf("Development mode enabled with live reload\n")
+	}
 	fmt.Printf("Press Ctrl+C to stop\n")
 
-	go startFileWatcher()
+	if *devMode {
+		go startFileWatcher()
+	}
 
 	if err := srv.ListenAndServe(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
