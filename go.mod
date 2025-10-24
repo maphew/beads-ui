@@ -1,8 +1,8 @@
-module github.com/steveyegge/beads-webui
+module github.com/maphew/beads-ui
 
 go 1.24.0
 
-require github.com/steveyegge/beads v0.0.0
+require github.com/steveyegge/beads v0.14.0
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -20,4 +20,5 @@ require (
 	modernc.org/sqlite v1.38.2 // indirect
 )
 
-replace github.com/steveyegge/beads => ../beads
+// For local development, uncomment this to use your local beads checkout:
+// replace github.com/steveyegge/beads => ../beads
