@@ -56,18 +56,18 @@ var store beads.Storage
 
 var devMode = flag.Bool("d", false, "Enable development mode with live reload")
 
-var help = flag.Bool("h", false, "Show help")
+var help = flag.Bool("help", false, "Show help")
 
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port] [-d] [-h]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port] [-d] [--help]\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "Options:\n")
-	fmt.Fprintf(os.Stderr, "  -d, --dev    Enable development mode with live reload\n")
-	fmt.Fprintf(os.Stderr, "  -h, --help   Show help\n")
+	fmt.Fprintf(os.Stderr, "  -d, --dev       Enable development mode with live reload\n")
+	fmt.Fprintf(os.Stderr, "  -h, --help      Show help\n")
 	fmt.Fprintf(os.Stderr, "Examples:\n")
 	fmt.Fprintf(os.Stderr, "  %s                    # autodiscover database\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite   # specify database path\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s .beads/db.sqlite 8080  # specify path and port\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s -d .beads/db.sqlite 8080  # enable live reload\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s .beads/name.db   # specify database path\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s .beads/name.db 8080  # specify path and port\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s -d .beads/name.db 8080  # enable live reload\n", os.Args[0])
 }
 
 var upgrader = websocket.Upgrader{

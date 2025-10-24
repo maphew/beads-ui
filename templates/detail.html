@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue {{.Issue.ID}} - Beads UI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Issue {{.Issue.ID}}</h1>
+        <a href="/">← Back to Issues</a>
+    </header>
+
+    <main>
+        <div class="issue-detail">
+            <h2>{{.Issue.Title}}</h2>
+            <p><strong>Status:</strong> {{.Issue.Status}}</p>
+            <p><strong>Priority:</strong> {{.Issue.Priority}}</p>
+            <p><strong>Type:</strong> {{.Issue.IssueType}}</p>
+            <p><strong>Created:</strong> {{.Issue.CreatedAt}}</p>
+            <p><strong>Updated:</strong> {{.Issue.UpdatedAt}}</p>
+            {{if .Issue.Description}}
+            <p><strong>Description:</strong> {{.Issue.Description}}</p>
+            {{end}}
+        </div>
+
+        {{if .HasDeps}}
+        <section class="dependencies">
+            <h3>Dependencies</h3>
+            <ul>
+                {{range .Deps}}
+                <li><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></li>
+                {{end}}
+            </ul>
+
+            <h3>Blocked By</h3>
+            <ul>
+                {{range .Dependents}}
+                <li><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></li>
+                {{end}}
+            </ul>
+        </section>
+        {{end}}
+
+        <section class="labels">
+            <h3>Labels</h3>
+            <div>
+                {{range .Labels}}
+                <span class="label">{{.}}</span>
+                {{end}}
+            </div>
+        </section>
+
+        <section class="events">
+            <h3>Recent Events</h3>
+            <ul>
+                {{range .Events}}
+                <li>{{.Timestamp}}: {{.EventType}} - {{.Description}}</li>
+                {{end}}
+            </ul>
+        </section>
+
+        <div class="actions">
+            <a href="/graph/{{.Issue.ID}}">View Dependency Graph</a>
+        </div>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

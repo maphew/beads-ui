@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blocked Issues - Beads UI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Blocked Issues</h1>
+        <div class="stats">
+            <span>Total: {{.Stats.TotalIssues}}</span>
+            <span>Open: {{.Stats.OpenIssues}}</span>
+            <span>In Progress: {{.Stats.InProgressIssues}}</span>
+            <span>Closed: {{.Stats.ClosedIssues}}</span>
+        </div>
+    </header>
+
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Blocked}}
+                <tr>
+                    <td><a href="/issue/{{.ID}}">{{.ID}}</a></td>
+                    <td>{{.Title}}</td>
+                    <td>{{.Status}}</td>
+                    <td>{{.Priority}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </main>
+
+    <footer>
+        <a href="/">All Issues</a> |
+        <a href="/ready">Ready Work</a>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
