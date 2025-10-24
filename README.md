@@ -1,4 +1,4 @@
-# beads-webui
+# beady - a ui for beads
 
 Standalone web UI for the beads issue tracker.
 
@@ -12,6 +12,10 @@ I've long been enamoured of Fossil-SCM and it's github-in-a-box nature, featurin
 
 The PR which started it: 
 https://github.com/steveyegge/beads/pull/77
+
+
+_--> Also see this other beads ui from @mantoni:_
+_https://github.com/mantoni/beads-ui_
 
 ## Features
 
@@ -34,16 +38,16 @@ https://github.com/steveyegge/beads/pull/77
 Install the latest release:
 
 ```bash
-go install github.com/maphew/beads-ui/cmd/bd-ui@latest
+go install github.com/maphew/beads-ui/cmd/beady@latest
 ```
 
 Or install the latest development version from main branch:
 
 ```bash
-go install github.com/maphew/beads-ui/cmd/bd-ui@main
+go install github.com/maphew/beads-ui/cmd/beady@main
 ```
 
-This will install the `bd-ui` binary to your `$GOPATH/bin` (usually `~/go/bin`).
+This will install the `beady` binary to your `$GOPATH/bin` (usually `~/go/bin`).
 
 ### Building from source
 
@@ -55,7 +59,7 @@ cd beads-ui
 
 2. Build the web UI:
 ```bash
-go build -o bd-ui ./cmd/bd-ui
+go build -o beady ./cmd/beady
 ```
 
 ### Local development with beads
@@ -71,17 +75,17 @@ If you're developing both beads-ui and beads together:
 Run the web UI with an optional path to a beads database:
 
 ```bash
-./beads-ui [path/to/.beads/name.db] [port]
+./beady [path/to/.beads/name.db] [port]
 ```
 
 For example, to use autodiscovery:
 ```bash
-./bd-ui 8080
+./beady 8080
 ```
 
 Or specify a path:
 ```bash
-./bd-ui .beads/name.db 8080
+./beady .beads/name.db 8080
 ```
 
 The web UI will start on `http://127.0.0.1:8080` (or the specified port).
@@ -97,7 +101,7 @@ If no database is found, it will fall back to creating a new empty database.
 To run the web UI in development mode:
 
 ```bash
-go run cmd/bd-ui/main.go /path/to/.beads/name.db
+go run cmd/beady/main.go /path/to/.beads/name.db
 ```
 
 To create a test database with sample issues:

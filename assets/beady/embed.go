@@ -1,4 +1,4 @@
-package bdui
+package beady
 
 import "embed"
 

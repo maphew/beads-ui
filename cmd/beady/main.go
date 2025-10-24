@@ -11,7 +11,9 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,11 +21,11 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/websocket"
-	"github.com/maphew/beads-ui/assets/bd-ui"
+	"github.com/maphew/beads-ui/assets/beady"
 	"github.com/steveyegge/beads"
 )
 
-var embedFS = bdui.FS
+var embedFS = beady.FS
 
 var tmplFS fs.FS
 
@@ -75,6 +77,7 @@ var upgrader = websocket.Upgrader{
 
 var clients = make(map[*websocket.Conn]bool)
 var clientsMu sync.Mutex
+var shutdownTimer *time.Timer
 
 func broadcast(message string) {
 	clientsMu.Lock()
@@ -97,11 +100,23 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 
 	clientsMu.Lock()
 	clients[conn] = true
+	// Cancel shutdown timer if running
+	if shutdownTimer != nil {
+		shutdownTimer.Stop()
+		shutdownTimer = nil
+	}
 	clientsMu.Unlock()
 
 	defer func() {
 		clientsMu.Lock()
 		delete(clients, conn)
+		// Start shutdown timer if no clients left
+		if len(clients) == 0 {
+			shutdownTimer = time.AfterFunc(5*time.Second, func() {
+				log.Println("No clients connected, shutting down...")
+				os.Exit(0)
+			})
+		}
 		clientsMu.Unlock()
 	}()
 
@@ -133,8 +148,8 @@ func startFileWatcher() {
 		})
 	}
 
-	addFiles("assets/bd-ui/templates")
-	addFiles("assets/bd-ui/static")
+	addFiles("assets/beady/templates")
+	addFiles("assets/beady/static")
 
 	for {
 		select {
@@ -145,7 +160,7 @@ func startFileWatcher() {
 			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) {
 				log.Printf("File changed: %s", event.Name)
 				// Re-parse templates if a template file changed
-				if strings.HasPrefix(event.Name, "assets/bd-ui/templates/") && strings.HasSuffix(event.Name, ".html") {
+				if strings.HasPrefix(event.Name, "assets/beady/templates/") && strings.HasSuffix(event.Name, ".html") {
 					log.Printf("Re-parsing templates")
 					parseTemplates()
 				}
@@ -171,7 +186,7 @@ func main() {
 
 	// Set filesystem for templates and static files
 	if *devMode {
-		tmplFS = os.DirFS("assets/bd-ui")
+		tmplFS = os.DirFS("assets/beady")
 	}
 	parseTemplates()
 
@@ -258,10 +273,21 @@ func main() {
 		go startFileWatcher()
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
-		os.Exit(1)
-	}
+	// Start server in goroutine
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
+			os.Exit(1)
+		}
+	}()
+
+	// Open browser
+	url := "http://" + addr
+	fmt.Printf("Opening browser to %s\n", url)
+	openBrowser(url)
+
+	// Wait for interrupt
+	select {}
 }
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -632,6 +658,19 @@ func generateDotGraph(ctx context.Context, root *beads.Issue) string {
 
 	sb.WriteString("}\n")
 	return sb.String()
+}
+
+func openBrowser(url string) {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("cmd", "/c", "start", url)
+	case "darwin":
+		cmd = exec.Command("open", url)
+	default: // linux, etc.
+		cmd = exec.Command("xdg-open", url)
+	}
+	cmd.Start()
 }
 
 func handleStatic(w http.ResponseWriter, r *http.Request) {
