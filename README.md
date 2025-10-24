@@ -31,10 +31,16 @@ https://github.com/steveyegge/beads/pull/77
 
 ### Quick install from Git
 
-Install directly using `go install`:
+Install the latest release:
 
 ```bash
 go install github.com/maphew/beads-ui/cmd/bd-ui@latest
+```
+
+Or install the latest development version from main branch:
+
+```bash
+go install github.com/maphew/beads-ui/cmd/bd-ui@main
 ```
 
 This will install the `bd-ui` binary to your `$GOPATH/bin` (usually `~/go/bin`).
@@ -91,7 +97,7 @@ If no database is found, it will fall back to creating a new empty database.
 To run the web UI in development mode:
 
 ```bash
-go run main.go /path/to/.beads/name.db
+go run cmd/bd-ui/main.go /path/to/.beads/name.db
 ```
 
 To create a test database with sample issues:
@@ -100,6 +106,14 @@ To create a test database with sample issues:
 cd cmd
 go run create_test_db_main.go /path/to/test.db
 ```
+
+### Releasing
+
+This project follows semantic versioning. To release a new version:
+
+1. Update the version in any relevant files (if needed)
+2. Create and push a git tag with the version (e.g., `git tag v1.0.0 && git push origin v1.0.0`)
+3. This will make the version available via `go install ...@latest`
 
 ## Dependencies
 
