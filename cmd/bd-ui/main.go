@@ -43,12 +43,12 @@ func init() {
 }
 
 func parseTemplates() {
-	tmplIndex = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/index.html"))
-	tmplDetail = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/detail.html"))
-	tmplGraph = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/graph.html"))
-	tmplReady = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/ready.html"))
-	tmplBlocked = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/blocked.html"))
-	tmplIssuesTbody = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/issues_tbody.html"))
+	tmplIndex = template.Must(template.ParseFS(tmplFS, "templates/index.html"))
+	tmplDetail = template.Must(template.ParseFS(tmplFS, "templates/detail.html"))
+	tmplGraph = template.Must(template.ParseFS(tmplFS, "templates/graph.html"))
+	tmplReady = template.Must(template.ParseFS(tmplFS, "templates/ready.html"))
+	tmplBlocked = template.Must(template.ParseFS(tmplFS, "templates/blocked.html"))
+	tmplIssuesTbody = template.Must(template.ParseFS(tmplFS, "templates/issues_tbody.html"))
 }
 
 var store beads.Storage
@@ -171,7 +171,7 @@ func main() {
 
 	// Set filesystem for templates and static files
 	if *devMode {
-		tmplFS = os.DirFS(".")
+		tmplFS = os.DirFS("assets/bd-ui")
 	}
 	parseTemplates()
 
@@ -649,10 +649,10 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 		contentType = "application/javascript; charset=utf-8"
 	}
 
-	content, err := fs.ReadFile(tmplFS, "assets/bd-ui/static/"+path)
+	content, err := fs.ReadFile(tmplFS, "static/"+path)
 	if err != nil {
 		// Try templates directory as fallback (for backward compatibility)
-		content, err = fs.ReadFile(tmplFS, "assets/bd-ui/templates/"+path)
+		content, err = fs.ReadFile(tmplFS, "templates/"+path)
 		if err != nil {
 			http.NotFound(w, r)
 			return
