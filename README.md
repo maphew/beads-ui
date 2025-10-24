@@ -37,7 +37,7 @@ Install directly using `go install`:
 go install github.com/maphew/beads-ui@latest
 ```
 
-This will install the `beads-ui` binary to your `$GOPATH/bin` (usually `~/go/bin`).
+This will install the `bd-ui` binary to your `$GOPATH/bin` (usually `~/go/bin`).
 
 ### Building from source
 
@@ -49,7 +49,7 @@ This will install the `beads-ui` binary to your `$GOPATH/bin` (usually `~/go/bin
 
 2. Build the web UI:
    ```bash
-   go build -o beads-ui .
+   go build -o bd-ui .
    ```
 
 ### Local development with beads
@@ -65,24 +65,24 @@ If you're developing both beads-ui and beads together:
 Run the web UI with an optional path to a beads database:
 
 ```bash
-./beads-ui [path/to/.beads/db.sqlite] [port]
+./beads-ui [path/to/.beads/name.db] [port]
 ```
 
 For example, to use autodiscovery:
 ```bash
-./beads-ui 8080
+./bd-ui 8080
 ```
 
 Or specify a path:
 ```bash
-./beads-ui .beads/db.sqlite 8080
+./bd-ui .beads/name.db 8080
 ```
 
 The web UI will start on `http://127.0.0.1:8080` (or the specified port).
 
 ### Autodiscovery
 
-If no database path is provided, the application will automatically search for a beads database in the current directory and standard locations (e.g., `.beads/db.sqlite`).
+If no database path is provided, the application will automatically search for a beads database in the current directory and standard locations (e.g., `.beads/name.db`).
 
 If no database is found, it will fall back to creating a new empty database.
 
@@ -91,7 +91,7 @@ If no database is found, it will fall back to creating a new empty database.
 To run the web UI in development mode:
 
 ```bash
-go run main.go /path/to/.beads/db.sqlite
+go run main.go /path/to/.beads/name.db
 ```
 
 To create a test database with sample issues:
