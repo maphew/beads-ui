@@ -1,6 +1,7 @@
 # Build artifacts
 /bd-ui
-bd-ui.exe
+/beady
+*.exe
 
 
 # IDE files
