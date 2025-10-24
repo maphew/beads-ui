@@ -1,0 +1,35 @@
+# ideas
+
+*A loose collection of ideas, examples, and inspirations from hich we might pull into Beads-ui project.*
+
+## bd-ui v0
+
+The 1st ui, built by Ampcode [Feature/web UI (DRAFT) by maphew · Pull Request #77 · steveyegge/beads · GitHub](https://github.com/steveyegge/beads/pull/77). 
+
+Likes:
+
+- search, status and priority filters
+- general feel, colour scheme is not bad
+
+Missing:
+
+- I want to use a light weight css framework with variables instead of direct styles. Probably Pico-css.
+- no dark mode
+
+![](box/bd-ui-v0.png)
+
+
+
+## bd-ui v0.1
+
+Another amp code UI. Built automatically when reorganizing the code layout and it lost track of the previous templates and styles.
+
+Likes:
+
+- has better information density than others so far
+
+Missing:
+
+- filtering, sorting, searching
+
+![](box/bd-ui-v0-1.png)
