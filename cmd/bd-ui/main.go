@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"embed"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -20,11 +19,11 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/websocket"
+	"github.com/maphew/beads-ui/assets/bd-ui"
 	"github.com/steveyegge/beads"
 )
 
-//go:embed templates/*.html static/*.css static/*.js
-var embedFS embed.FS
+var embedFS = bdui.FS
 
 var tmplFS fs.FS
 
@@ -44,12 +43,12 @@ func init() {
 }
 
 func parseTemplates() {
-	tmplIndex = template.Must(template.ParseFS(tmplFS, "templates/index.html"))
-	tmplDetail = template.Must(template.ParseFS(tmplFS, "templates/detail.html"))
-	tmplGraph = template.Must(template.ParseFS(tmplFS, "templates/graph.html"))
-	tmplReady = template.Must(template.ParseFS(tmplFS, "templates/ready.html"))
-	tmplBlocked = template.Must(template.ParseFS(tmplFS, "templates/blocked.html"))
-	tmplIssuesTbody = template.Must(template.ParseFS(tmplFS, "templates/issues_tbody.html"))
+	tmplIndex = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/index.html"))
+	tmplDetail = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/detail.html"))
+	tmplGraph = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/graph.html"))
+	tmplReady = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/ready.html"))
+	tmplBlocked = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/blocked.html"))
+	tmplIssuesTbody = template.Must(template.ParseFS(tmplFS, "assets/bd-ui/templates/issues_tbody.html"))
 }
 
 var store beads.Storage
@@ -134,8 +133,8 @@ func startFileWatcher() {
 		})
 	}
 
-	addFiles("templates")
-	addFiles("static")
+	addFiles("assets/bd-ui/templates")
+	addFiles("assets/bd-ui/static")
 
 	for {
 		select {
@@ -146,7 +145,7 @@ func startFileWatcher() {
 			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) {
 				log.Printf("File changed: %s", event.Name)
 				// Re-parse templates if a template file changed
-				if strings.HasPrefix(event.Name, "templates/") && strings.HasSuffix(event.Name, ".html") {
+				if strings.HasPrefix(event.Name, "assets/bd-ui/templates/") && strings.HasSuffix(event.Name, ".html") {
 					log.Printf("Re-parsing templates")
 					parseTemplates()
 				}
@@ -650,10 +649,10 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 		contentType = "application/javascript; charset=utf-8"
 	}
 
-	content, err := fs.ReadFile(tmplFS, "static/"+path)
+	content, err := fs.ReadFile(tmplFS, "assets/bd-ui/static/"+path)
 	if err != nil {
 		// Try templates directory as fallback (for backward compatibility)
-		content, err = fs.ReadFile(tmplFS, "templates/"+path)
+		content, err = fs.ReadFile(tmplFS, "assets/bd-ui/templates/"+path)
 		if err != nil {
 			http.NotFound(w, r)
 			return
