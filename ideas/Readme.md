@@ -16,8 +16,7 @@ Missing:
 - I want to use a light weight css framework with variables instead of direct styles. Probably Pico-css.
 - no dark mode
 
-![](box/bd-ui-v0.png)
-
+![](box/bd-ui-v0-0.png)
 
 
 ## bd-ui v0.1
@@ -33,3 +32,20 @@ Missing:
 - filtering, sorting, searching
 
 ![](box/bd-ui-v0-1.png)
+
+
+## bd-ui pico
+
+First attempt at using Pico CSS framework.
+
+Likes:
+- integrated dark & light modes
+- colour themes
+- Lightweight
+- Easy to customize with CSS variables
+
+Missing:
+
+- Info density is weak, poor use of whitespace (too much of it)
+
+![](box/bd-ui-pico-v0-0.png)
