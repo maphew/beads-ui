@@ -1,0 +1,11 @@
+                {{range .}}
+                <tr>
+                    <td><a href="/issue/{{.ID}}">{{.ID}}</a></td>
+                    <td>{{.Title}}</td>
+                    <td>{{.Status}}</td>
+                    <td>{{.Priority}}</td>
+                    <td>{{range .Labels}}<span class="label">{{.}}</span>{{end}}</td>
+                    <td>{{.DepsCount}}</td>
+                    <td>{{.BlockersCount}}</td>
+                </tr>
+                {{end}}

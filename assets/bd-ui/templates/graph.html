@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dependency Graph for {{.Issue.ID}}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/@hpcc-js/wasm@1.21.0/dist/index.min.js"></script>
+    <script src="https://unpkg.com/d3-graphviz@5.0.2/build/d3-graphviz.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Dependency Graph: {{.Issue.Title}}</h1>
+        <a href="/issue/{{.Issue.ID}}">← Back to Issue</a>
+    </header>
+
+    <main>
+        <div id="graph"></div>
+        <script>
+            const dot = `{{.DotGraph}}`;
+            d3.select("#graph").graphviz().renderDot(dot);
+        </script>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

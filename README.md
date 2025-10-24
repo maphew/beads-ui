@@ -34,7 +34,7 @@ https://github.com/steveyegge/beads/pull/77
 Install directly using `go install`:
 
 ```bash
-go install github.com/maphew/beads-ui@latest
+go install github.com/maphew/beads-ui/cmd/bd-ui@latest
 ```
 
 This will install the `bd-ui` binary to your `$GOPATH/bin` (usually `~/go/bin`).
@@ -42,15 +42,15 @@ This will install the `bd-ui` binary to your `$GOPATH/bin` (usually `~/go/bin`).
 ### Building from source
 
 1. Clone this repository:
-   ```bash
-   git clone https://github.com/maphew/beads-ui.git
-   cd beads-ui
-   ```
+```bash
+git clone https://github.com/maphew/beads-ui.git
+cd beads-ui
+```
 
 2. Build the web UI:
-   ```bash
-   go build -o bd-ui .
-   ```
+```bash
+go build -o bd-ui ./cmd/bd-ui
+```
 
 ### Local development with beads
 
