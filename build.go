@@ -12,7 +12,7 @@ import (
 )
 
 // main builds the beady binary and names the output by appending the current Git branch (except when on "main") and an OS-specific extension.
-// 
+//
 // It obtains the current Git branch, sanitizes the branch by replacing characters not in [A-Za-z0-9-_] with '_', appends "-<branch>" to the base name "beady" when the branch is not "main", adds ".exe" on Windows, and runs `go build -o <output> ./cmd/beady` to produce the binary. If obtaining the branch or the build process fails, it prints an error and exits with a non-zero status.
 func main() {
 	// Get current branch
@@ -38,9 +38,6 @@ func main() {
 		return '_'
 	}, branch)
 
- 	// Determine output name
- 	output := "beady"
- 	if branch != "main" {
 	// Determine output name
 	output := "beady"
 	if branch != "main" {
