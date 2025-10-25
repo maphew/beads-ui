@@ -213,6 +213,10 @@ func main() {
 
 	// Set filesystem for templates and static files
 	if devMode {
+		if _, err := os.Stat("assets/beady"); os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "Development mode requires running from repository root (assets/beady not found)\n")
+			os.Exit(1)
+		}
 		tmplFS = os.DirFS("assets/beady")
 	}
 	parseTemplates()
