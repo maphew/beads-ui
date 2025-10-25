@@ -41,6 +41,7 @@ var (
 
 func init() {
 	tmplFS = embedFS
+	flag.BoolVar(devMode, "dev", false, "")
 	// Templates will be parsed after flag parsing
 }
 
