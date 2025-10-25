@@ -80,6 +80,8 @@ var clients = make(map[*websocket.Conn]bool)
 var clientsMu sync.Mutex
 var shutdownTimer *time.Timer
 
+// broadcast sends the given text message to all registered WebSocket clients.
+// If writing to a client fails, the function closes that connection and removes it from the client set.
 func broadcast(message string) {
 	clientsMu.Lock()
 	defer clientsMu.Unlock()
@@ -91,6 +93,11 @@ func broadcast(message string) {
 	}
 }
 
+// handleWS upgrades an HTTP connection to a WebSocket and manages the connection lifecycle for live reloads.
+// 
+// It registers the new client and cancels any pending shutdown timer while connected. When the client
+// disconnects it is removed; if no clients remain a 5-second timer is started to terminate the process.
+// The handler keeps the connection alive by continuously reading messages until an error occurs.
 func handleWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -129,6 +136,10 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// startFileWatcher watches the embedded assets/beady/templates and assets/beady/static directories for file changes and triggers live-reload actions.
+// 
+// When a change is detected it logs the change, re-parses HTML templates if a template file was modified, and broadcasts a "reload" message to connected WebSocket clients.
+// It also logs watcher errors.
 func startFileWatcher() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -177,6 +188,7 @@ func startFileWatcher() {
 	}
 }
 
+// main is the program entrypoint. It parses command-line flags, loads templates and the beads database (using the provided path or autodiscovery), configures HTTP routes and server timeouts, and starts the web UI server. In development mode it enables live-reload (file watcher and websocket), opens the default browser to the UI, and logs relevant startup info. The function blocks indefinitely.
 func main() {
 	flag.Usage = printUsage
 	flag.Parse()
@@ -295,6 +307,12 @@ func main() {
 	select {}
 }
 
+// handleIndex serves the main index page showing issues and statistics.
+// It validates that the request path is "/" and the method is GET, then
+// fetches up to 100 issues, enriches them with labels and dependency counts,
+// obtains overall statistics, and renders the index template.
+// Responds with 404 for non-root paths, 405 for non-GET methods, and 500 for
+// storage or template rendering errors.
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -603,6 +621,10 @@ func enrichIssuesWithLabels(ctx context.Context, issues []*beads.Issue) []*Issue
 	return result
 }
 
+// generateDotGraph builds a DOT-format directed graph for the given root issue,
+// including the root's dependencies and dependents as nodes and edges.
+// The returned string is a complete DOT graph where each node is styled and
+// colored according to the issue's status and contains the issue ID, title, and priority.
 func generateDotGraph(ctx context.Context, root *beads.Issue) string {
 	var sb strings.Builder
 	sb.WriteString("digraph G {\n")
@@ -665,6 +687,8 @@ func generateDotGraph(ctx context.Context, root *beads.Issue) string {
 	return sb.String()
 }
 
+// openBrowser opens the specified URL in the user's default web browser.
+// It returns an error if the platform command used to launch the browser cannot be started.
 func openBrowser(url string) error {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
@@ -679,6 +703,10 @@ func openBrowser(url string) error {
 	return cmd.Start()
 }
 
+// handleStatic serves files requested under the /static/ path from the configured template filesystem.
+// It looks up the resource under "static/{path}" with a fallback to "templates/{path}", sets the
+// Content-Type for ".css" and ".js" files, responds with 404 if the file cannot be found, and returns
+// 405 Method Not Allowed for any non-GET request.
 func handleStatic(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
