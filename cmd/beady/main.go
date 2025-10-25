@@ -110,8 +110,9 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 	clients[conn] = true
 	// Cancel shutdown timer if running
 	if shutdownTimer != nil {
-		shutdownTimer.Stop()
-		shutdownTimer = nil
+		if shutdownTimer.Stop() {
+			shutdownTimer = nil
+		}
 	}
 	clientsMu.Unlock()
 
@@ -121,6 +122,11 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 		// Start shutdown timer if no clients left
 		if len(clients) == 0 {
 			shutdownTimer = time.AfterFunc(5*time.Second, func() {
+				clientsMu.Lock()
+				defer clientsMu.Unlock()
+				if len(clients) != 0 {
+					return
+				}
 				log.Println("No clients connected, shutting down...")
 				os.Exit(0)
 			})
@@ -287,12 +293,22 @@ func main() {
 	}
 
 	// Start server in goroutine
+	errCh := make(chan error, 1)
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
-			os.Exit(1)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			errCh <- err
 		}
 	}()
+
+	// Give server a moment to start
+	time.Sleep(100 * time.Millisecond)
+	select {
+	case err := <-errCh:
+		fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
+		os.Exit(1)
+	default:
+		// Server started successfully
+	}
 
 	if *devMode {
 		// Open browser (best-effort)
