@@ -163,6 +163,11 @@ func startFileWatcher() {
 	addFiles("assets/beady/templates")
 	addFiles("assets/beady/static")
 
+	// Verify paths exist
+	if _, err := os.Stat("assets/beady/templates"); os.IsNotExist(err) {
+		log.Fatal("Development mode requires running from repository root (assets/beady/templates not found)")
+	}
+
 	for {
 		select {
 		case event, ok := <-watcher.Events:
