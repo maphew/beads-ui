@@ -1,3 +1,6 @@
+// Build is a utility that compiles the beady binary with branch-aware naming.
+// It appends the current git branch name to the output binary (e.g., beady-feature)
+// unless building from the main branch.
 package main
 
 import (
@@ -24,6 +27,17 @@ func main() {
 		ext = ".exe"
 	}
 
+	// Sanitize branch name to prevent path traversal and special characters
+	branch = strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
+			return r
+		}
+		return '_'
+	}, branch)
+
+ 	// Determine output name
+ 	output := "beady"
+ 	if branch != "main" {
 	// Determine output name
 	output := "beady"
 	if branch != "main" {
@@ -35,9 +49,9 @@ func main() {
 
 	// Build
 	buildCmd := exec.Command("go", "build", "-o", output, "./cmd/beady")
-	err = buildCmd.Run()
+	buildOutput, err := buildCmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error building: %v\n", err)
+		fmt.Printf("Error building: %v\n%s\n", err, string(buildOutput))
 		os.Exit(1)
 	}
 
