@@ -13,7 +13,7 @@ func main() {
 	cmd := exec.Command("git", "branch", "--show-current")
 	out, err := cmd.Output()
 	if err != nil {
-		fmt.Printf("Error getting git branch: %v\n", err)
+		fmt.Printf("Error getting git branch: %v\nNote: build.go requires a git repository with an active branch.\n", err)
 		os.Exit(1)
 	}
 	branch := strings.TrimSpace(string(out))

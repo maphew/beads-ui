@@ -14,8 +14,7 @@ The PR which started it:
 https://github.com/steveyegge/beads/pull/77
 
 
-_--> Also see this other beads ui from @mantoni:_
-_https://github.com/mantoni/beads-ui_
+_--> Also see this other beads ui from @mantoni: [mantoni/beads-ui](https://github.com/mantoni/beads-ui)_
 
 ## Features
 
