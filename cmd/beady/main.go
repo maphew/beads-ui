@@ -43,7 +43,8 @@ var (
 
 func init() {
 	tmplFS = embedFS
-	flag.BoolVar(devMode, "dev", false, "")
+	flag.BoolVar(&devMode, "dev", false, "")
+	flag.BoolVar(&devMode, "d", false, "Enable development mode with live reload")
 	// Templates will be parsed after flag parsing
 }
 
@@ -58,7 +59,7 @@ func parseTemplates() {
 
 var store beads.Storage
 
-var devMode = flag.Bool("d", false, "Enable development mode with live reload")
+var devMode bool
 
 var help = flag.Bool("help", false, "Show help")
 
@@ -206,7 +207,7 @@ func main() {
 	}
 
 	// Set filesystem for templates and static files
-	if *devMode {
+	if devMode {
 		tmplFS = os.DirFS("assets/beady")
 	}
 	parseTemplates()
@@ -270,7 +271,7 @@ func main() {
 	mux.HandleFunc("/api/issues", handleAPIIssues)
 	mux.HandleFunc("/api/issue/", handleAPIIssue)
 	mux.HandleFunc("/api/stats", handleAPIStats)
-	if *devMode {
+	if devMode {
 		mux.HandleFunc("/ws", handleWS)
 	}
 	mux.HandleFunc("/static/", handleStatic)
@@ -284,12 +285,12 @@ func main() {
 	}
 
 	fmt.Printf("Starting beads web UI at http://%s\n", addr)
-	if *devMode {
+	if devMode {
 		fmt.Printf("Development mode enabled with live reload\n")
 	}
 	fmt.Printf("Press Ctrl+C to stop\n")
 
-	if *devMode {
+	if devMode {
 		log.Printf("Starting file watcher for live reload")
 		go startFileWatcher()
 	}
@@ -312,7 +313,7 @@ func main() {
 		// Server started successfully
 	}
 
-	if *devMode {
+	if devMode {
 		// Open browser (best-effort)
 		url := "http://" + addr
 		fmt.Printf("Opening browser to %s\n", url)
