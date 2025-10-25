@@ -281,10 +281,14 @@ func main() {
 		}
 	}()
 
-	// Open browser
-	url := "http://" + addr
-	fmt.Printf("Opening browser to %s\n", url)
-	openBrowser(url)
+	if *devMode {
+		// Open browser (best-effort)
+		url := "http://" + addr
+		fmt.Printf("Opening browser to %s\n", url)
+		if err := openBrowser(url); err != nil {
+			log.Printf("Open browser failed: %v", err)
+		}
+	}
 
 	// Wait for interrupt
 	select {}
@@ -660,17 +664,18 @@ func generateDotGraph(ctx context.Context, root *beads.Issue) string {
 	return sb.String()
 }
 
-func openBrowser(url string) {
+func openBrowser(url string) error {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":
-		cmd = exec.Command("cmd", "/c", "start", url)
+		// Empty title arg avoids treating URL as window title; quote-safe
+		cmd = exec.Command("cmd", "/c", "start", "", url)
 	case "darwin":
 		cmd = exec.Command("open", url)
 	default: // linux, etc.
 		cmd = exec.Command("xdg-open", url)
 	}
-	cmd.Start()
+	return cmd.Start()
 }
 
 func handleStatic(w http.ResponseWriter, r *http.Request) {
