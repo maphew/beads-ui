@@ -49,3 +49,27 @@ Missing:
 - Info density is weak, poor use of whitespace (too much of it)
 
 ![](box/bd-ui-pico-v0-0.png)
+
+
+## Fossil SCM
+
+### Tickets
+
+Likes:
+- can sort on any column
+- edit link on each row
+- colour coded status
+- sub-pages: 
+  - create new ticket
+  - raw view - a plain text table of tickets in this filter state, easy to copy paste
+
+![](box/fossil-tickets.png)
+
+### Timeline view (commit and branch history)
+
+Likes:
+- graph viz
+- easy date navigation
+- commit message preview
+
+![](box/fossil-timeline.png)
