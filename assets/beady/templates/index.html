@@ -38,20 +38,58 @@
             </select>
             <button type="submit">Filter</button>
         </form>
-        <div class="grid">
-            {{range .Issues}}
-            <article class="card">
-                <header>
-                    <h3><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></h3>
-                </header>
-                <p><strong>Status:</strong> <span class="status-{{.Status | lower}}">{{.Status}}</span></p>
-                <p><strong>Priority:</strong> {{.Priority}}</p>
-                <p><strong>Deps:</strong> {{.DepsCount}} | <strong>Blockers:</strong> {{.BlockersCount}}</p>
-                <footer>
-                    {{range .Labels}}<span class="label">{{.}}</span>{{end}}
-                </footer>
-            </article>
-            {{end}}
+        <div class="kanban">
+            <div class="lane lane-open">
+                <h3>Open</h3>
+                {{range .Issues}}
+                {{if eq .Status "Open"}}
+                <article class="card">
+                    <header>
+                        <h3><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></h3>
+                    </header>
+                    <p><strong>Priority:</strong> {{.Priority}}</p>
+                    <p><strong>Deps:</strong> {{.DepsCount}} | <strong>Blockers:</strong> {{.BlockersCount}}</p>
+                    <footer>
+                        {{range .Labels}}<span class="label">{{.}}</span>{{end}}
+                    </footer>
+                </article>
+                {{end}}
+                {{end}}
+            </div>
+            <div class="lane lane-in-progress">
+                <h3>In Progress</h3>
+                {{range .Issues}}
+                {{if eq .Status "In Progress"}}
+                <article class="card">
+                    <header>
+                        <h3><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></h3>
+                    </header>
+                    <p><strong>Priority:</strong> {{.Priority}}</p>
+                    <p><strong>Deps:</strong> {{.DepsCount}} | <strong>Blockers:</strong> {{.BlockersCount}}</p>
+                    <footer>
+                        {{range .Labels}}<span class="label">{{.}}</span>{{end}}
+                    </footer>
+                </article>
+                {{end}}
+                {{end}}
+            </div>
+            <div class="lane lane-closed">
+                <h3>Closed</h3>
+                {{range .Issues}}
+                {{if eq .Status "Closed"}}
+                <article class="card">
+                    <header>
+                        <h3><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></h3>
+                    </header>
+                    <p><strong>Priority:</strong> {{.Priority}}</p>
+                    <p><strong>Deps:</strong> {{.DepsCount}} | <strong>Blockers:</strong> {{.BlockersCount}}</p>
+                    <footer>
+                        {{range .Labels}}<span class="label">{{.}}</span>{{end}}
+                    </footer>
+                </article>
+                {{end}}
+                {{end}}
+            </div>
         </div>
         {{if not .Issues}}
         <article class="card empty">
