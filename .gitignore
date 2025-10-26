@@ -1,7 +1,8 @@
 # Build artifacts
 /bd-ui
-bd-ui.exe
-
+/beady
+*.exe
+bin/
 
 # IDE files
 *.swp

@@ -1,0 +1,25 @@
+/* Pico CSS overrides */
+
+body {
+    background-color: var(--pico-background-color);
+}
+
+main {
+    padding: var(--pico-block-spacing-vertical) var(--pico-block-spacing-horizontal);
+}
+
+.label {
+    background-color: var(--pico-code-background-color);
+    color: var(--pico-code-color);
+    padding: 0.2rem 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: var(--pico-border-radius);
+    font-size: 0.8rem;
+}
+
+#graph {
+    width: 100%;
+    height: 600px;
+    border: var(--pico-border-width) solid var(--pico-border-color);
+    border-radius: var(--pico-border-radius);
+}

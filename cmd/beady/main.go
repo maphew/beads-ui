@@ -11,19 +11,23 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/websocket"
-	"github.com/maphew/beads-ui/assets/bd-ui"
+	"github.com/maphew/beads-ui/assets/beady"
 	"github.com/steveyegge/beads"
 )
 
-var embedFS = bdui.FS
+var embedFS = beady.FS
 
 var tmplFS fs.FS
 
@@ -39,6 +43,8 @@ var (
 
 func init() {
 	tmplFS = embedFS
+	flag.BoolVar(&devMode, "dev", false, "")
+	flag.BoolVar(&devMode, "d", false, "Enable development mode with live reload")
 	// Templates will be parsed after flag parsing
 }
 
@@ -53,7 +59,7 @@ func parseTemplates() {
 
 var store beads.Storage
 
-var devMode = flag.Bool("d", false, "Enable development mode with live reload")
+var devMode bool
 
 var help = flag.Bool("help", false, "Show help")
 
@@ -75,7 +81,10 @@ var upgrader = websocket.Upgrader{
 
 var clients = make(map[*websocket.Conn]bool)
 var clientsMu sync.Mutex
+var shutdownTimer *time.Timer
 
+// broadcast sends the given text message to all registered WebSocket clients.
+// If writing to a client fails, the function closes that connection and removes it from the client set.
 func broadcast(message string) {
 	clientsMu.Lock()
 	defer clientsMu.Unlock()
@@ -87,6 +96,11 @@ func broadcast(message string) {
 	}
 }
 
+// handleWS upgrades an HTTP connection to a WebSocket and manages the connection lifecycle for live reloads.
+// 
+// It registers the new client and cancels any pending shutdown timer while connected. When the client
+// disconnects it is removed; if no clients remain a 5-second timer is started to terminate the process.
+// The handler keeps the connection alive by continuously reading messages until an error occurs.
 func handleWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -97,11 +111,29 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 
 	clientsMu.Lock()
 	clients[conn] = true
+	// Cancel shutdown timer if running
+	if shutdownTimer != nil {
+		if shutdownTimer.Stop() {
+			shutdownTimer = nil
+		}
+	}
 	clientsMu.Unlock()
 
 	defer func() {
 		clientsMu.Lock()
 		delete(clients, conn)
+		// Start shutdown timer if no clients left
+		if len(clients) == 0 {
+			shutdownTimer = time.AfterFunc(5*time.Second, func() {
+				clientsMu.Lock()
+				defer clientsMu.Unlock()
+				if len(clients) != 0 {
+					return
+				}
+				log.Println("No clients connected, shutting down...")
+				os.Exit(0)
+			})
+		}
 		clientsMu.Unlock()
 	}()
 
@@ -113,6 +145,10 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// startFileWatcher watches the embedded assets/beady/templates and assets/beady/static directories for file changes and triggers live-reload actions.
+// 
+// When a change is detected it logs the change, re-parses HTML templates if a template file was modified, and broadcasts a "reload" message to connected WebSocket clients.
+// It also logs watcher errors.
 func startFileWatcher() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -133,8 +169,13 @@ func startFileWatcher() {
 		})
 	}
 
-	addFiles("assets/bd-ui/templates")
-	addFiles("assets/bd-ui/static")
+	addFiles("assets/beady/templates")
+	addFiles("assets/beady/static")
+
+	// Verify paths exist
+	if _, err := os.Stat("assets/beady/templates"); os.IsNotExist(err) {
+		log.Fatal("Development mode requires running from repository root (assets/beady/templates not found)")
+	}
 
 	for {
 		select {
@@ -145,7 +186,7 @@ func startFileWatcher() {
 			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) {
 				log.Printf("File changed: %s", event.Name)
 				// Re-parse templates if a template file changed
-				if strings.HasPrefix(event.Name, "assets/bd-ui/templates/") && strings.HasSuffix(event.Name, ".html") {
+				if strings.HasPrefix(event.Name, "assets/beady/templates/") && strings.HasSuffix(event.Name, ".html") {
 					log.Printf("Re-parsing templates")
 					parseTemplates()
 				}
@@ -161,6 +202,7 @@ func startFileWatcher() {
 	}
 }
 
+// main is the program entrypoint. It parses command-line flags, loads templates and the beads database (using the provided path or autodiscovery), configures HTTP routes and server timeouts, and starts the web UI server. In development mode it enables live-reload (file watcher and websocket), opens the default browser to the UI, and logs relevant startup info. The function blocks indefinitely.
 func main() {
 	flag.Usage = printUsage
 	flag.Parse()
@@ -170,8 +212,12 @@ func main() {
 	}
 
 	// Set filesystem for templates and static files
-	if *devMode {
-		tmplFS = os.DirFS("assets/bd-ui")
+	if devMode {
+		if _, err := os.Stat("assets/beady"); os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "Development mode requires running from repository root (assets/beady not found)\n")
+			os.Exit(1)
+		}
+		tmplFS = os.DirFS("assets/beady")
 	}
 	parseTemplates()
 
@@ -234,7 +280,7 @@ func main() {
 	mux.HandleFunc("/api/issues", handleAPIIssues)
 	mux.HandleFunc("/api/issue/", handleAPIIssue)
 	mux.HandleFunc("/api/stats", handleAPIStats)
-	if *devMode {
+	if devMode {
 		mux.HandleFunc("/ws", handleWS)
 	}
 	mux.HandleFunc("/static/", handleStatic)
@@ -248,22 +294,62 @@ func main() {
 	}
 
 	fmt.Printf("Starting beads web UI at http://%s\n", addr)
-	if *devMode {
+	if devMode {
 		fmt.Printf("Development mode enabled with live reload\n")
 	}
 	fmt.Printf("Press Ctrl+C to stop\n")
 
-	if *devMode {
+	if devMode {
 		log.Printf("Starting file watcher for live reload")
 		go startFileWatcher()
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
+	// Start server in goroutine
+	errCh := make(chan error, 1)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			errCh <- err
+		}
+	}()
+
+	// Give server a moment to start
+	time.Sleep(100 * time.Millisecond)
+	select {
+	case err := <-errCh:
 		fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)
 		os.Exit(1)
+	default:
+		// Server started successfully
 	}
+
+	if devMode {
+		// Open browser (best-effort)
+		url := "http://" + addr
+		fmt.Printf("Opening browser to %s\n", url)
+		if err := openBrowser(url); err != nil {
+			log.Printf("Open browser failed: %v", err)
+		}
+	}
+
+	// Wait for interrupt
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	<-sigCh
+
+	// Graceful shutdown
+	log.Println("Shutting down server...")
+	if err := srv.Shutdown(context.Background()); err != nil {
+		log.Printf("Server shutdown error: %v", err)
+	}
+	log.Println("Server stopped")
 }
 
+// handleIndex serves the main index page showing issues and statistics.
+// It validates that the request path is "/" and the method is GET, then
+// fetches up to 100 issues, enriches them with labels and dependency counts,
+// obtains overall statistics, and renders the index template.
+// Responds with 404 for non-root paths, 405 for non-GET methods, and 500 for
+// storage or template rendering errors.
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -572,6 +658,10 @@ func enrichIssuesWithLabels(ctx context.Context, issues []*beads.Issue) []*Issue
 	return result
 }
 
+// generateDotGraph builds a DOT-format directed graph for the given root issue,
+// including the root's dependencies and dependents as nodes and edges.
+// The returned string is a complete DOT graph where each node is styled and
+// colored according to the issue's status and contains the issue ID, title, and priority.
 func generateDotGraph(ctx context.Context, root *beads.Issue) string {
 	var sb strings.Builder
 	sb.WriteString("digraph G {\n")
@@ -634,6 +724,26 @@ func generateDotGraph(ctx context.Context, root *beads.Issue) string {
 	return sb.String()
 }
 
+// openBrowser opens the specified URL in the user's default web browser.
+// It returns an error if the platform command used to launch the browser cannot be started.
+func openBrowser(url string) error {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		// Empty title arg avoids treating URL as window title; quote-safe
+		cmd = exec.Command("cmd", "/c", "start", "", url)
+	case "darwin":
+		cmd = exec.Command("open", url)
+	default: // linux, etc.
+		cmd = exec.Command("xdg-open", url)
+	}
+	return cmd.Start()
+}
+
+// handleStatic serves files requested under the /static/ path from the configured template filesystem.
+// It looks up the resource under "static/{path}" with a fallback to "templates/{path}", sets the
+// Content-Type for ".css" and ".js" files, responds with 404 if the file cannot be found, and returns
+// 405 Method Not Allowed for any non-GET request.
 func handleStatic(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

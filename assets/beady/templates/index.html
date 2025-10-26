@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blocked Issues - Beads UI</title>
+    <title>Beads Issue Tracker - Beady</title>
+    <link rel="stylesheet" href="/static/pico.css">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <header>
-        <h1>Blocked Issues</h1>
+        <h1>Beads Issue Tracker</h1>
         <div class="stats">
             <span>Total: {{.Stats.TotalIssues}}</span>
             <span>Open: {{.Stats.OpenIssues}}</span>
@@ -18,6 +19,7 @@
     </header>
 
     <main>
+        <h2>All Issues</h2>
         <table>
             <thead>
                 <tr>
@@ -25,15 +27,21 @@
                     <th>Title</th>
                     <th>Status</th>
                     <th>Priority</th>
+                    <th>Labels</th>
+                    <th>Deps</th>
+                    <th>Blockers</th>
                 </tr>
             </thead>
             <tbody>
-                {{range .Blocked}}
+                {{range .Issues}}
                 <tr>
                     <td><a href="/issue/{{.ID}}">{{.ID}}</a></td>
                     <td>{{.Title}}</td>
                     <td>{{.Status}}</td>
                     <td>{{.Priority}}</td>
+                    <td>{{range .Labels}}<span class="label">{{.}}</span>{{end}}</td>
+                    <td>{{.DepsCount}}</td>
+                    <td>{{.BlockersCount}}</td>
                 </tr>
                 {{end}}
             </tbody>
@@ -41,8 +49,8 @@
     </main>
 
     <footer>
-        <a href="/">All Issues</a> |
-        <a href="/ready">Ready Work</a>
+        <a href="/ready">Ready Work</a> |
+        <a href="/blocked">Blocked Issues</a>
     </footer>
 
     <script src="/static/app.js"></script>
