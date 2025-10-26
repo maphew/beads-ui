@@ -1,5 +1,44 @@
 /* Pico CSS overrides */
 
+:root {
+    --pico-primary: hsl(210, 100%, 40%);
+    --pico-primary-background: hsl(210, 100%, 95%);
+    --pico-primary-border: hsl(210, 100%, 85%);
+    --pico-primary-underline: hsl(210, 100%, 85%);
+    --pico-primary-hover: hsl(210, 100%, 90%);
+    --pico-primary-hover-background: hsl(210, 100%, 85%);
+    --pico-primary-hover-border: hsl(210, 100%, 75%);
+    --pico-primary-hover-underline: hsl(210, 100%, 75%);
+    --pico-primary-focus: hsl(210, 100%, 90%);
+    --pico-primary-inverse: hsl(0, 0%, 100%);
+    --status-open: hsl(120, 25%, 90%);
+    --status-open-dark: hsl(120, 25%, 20%);
+    --status-in-progress: hsl(45, 100%, 90%);
+    --status-in-progress-dark: hsl(45, 100%, 30%);
+    --status-closed: hsl(0, 50%, 90%);
+    --status-closed-dark: hsl(0, 50%, 25%);
+    --dense-spacing: 0.5rem;
+}
+
+[data-theme="dark"] {
+    --pico-primary: hsl(210, 100%, 60%);
+    --pico-primary-background: hsl(210, 100%, 10%);
+    --pico-primary-border: hsl(210, 100%, 20%);
+    --pico-primary-underline: hsl(210, 100%, 20%);
+    --pico-primary-hover: hsl(210, 100%, 15%);
+    --pico-primary-hover-background: hsl(210, 100%, 20%);
+    --pico-primary-hover-border: hsl(210, 100%, 30%);
+    --pico-primary-hover-underline: hsl(210, 100%, 30%);
+    --pico-primary-focus: hsl(210, 100%, 15%);
+    --pico-primary-inverse: hsl(0, 0%, 0%);
+    --status-open: hsl(120, 25%, 15%);
+    --status-open-dark: hsl(120, 25%, 85%);
+    --status-in-progress: hsl(45, 100%, 15%);
+    --status-in-progress-dark: hsl(45, 100%, 85%);
+    --status-closed: hsl(0, 50%, 15%);
+    --status-closed-dark: hsl(0, 50%, 85%);
+}
+
 body {
     background-color: var(--pico-background-color);
 }
@@ -15,6 +54,36 @@ main {
     margin-right: 0.5rem;
     border-radius: var(--pico-border-radius);
     font-size: 0.8rem;
+}
+
+.status-open { background-color: var(--status-open); color: var(--status-open-dark); }
+[data-theme="dark"] .status-open { background-color: var(--status-open); color: var(--status-open-dark); }
+.status-in-progress { background-color: var(--status-in-progress); color: var(--status-in-progress-dark); }
+[data-theme="dark"] .status-in-progress { background-color: var(--status-in-progress); color: var(--status-in-progress-dark); }
+.status-closed { background-color: var(--status-closed); color: var(--status-closed-dark); }
+[data-theme="dark"] .status-closed { background-color: var(--status-closed); color: var(--status-closed-dark); }
+
+.card {
+    box-shadow: var(--pico-box-shadow);
+    transition: box-shadow 0.2s ease;
+}
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+[data-theme="dark"] .card:hover {
+    box-shadow: 0 4px 8px rgba(255,255,255,0.1);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--dense-spacing);
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 #graph {
