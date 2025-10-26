@@ -52,13 +52,13 @@ This will install the `beady` binary to your `$GOPATH/bin` (usually `~/go/bin`).
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/maphew/beads-ui.git
-cd beads-ui
+git clone https://github.com/maphew/beady.git
+cd beady
 ```
 
 2. Build the web UI:
 ```bash
-go build -o beady ./cmd/beady
+go run build.go
 ```
 
 ### Local development with beads
@@ -100,6 +100,10 @@ If no database is found, it will fall back to creating a new empty database.
 To run the web UI in development mode:
 
 ```bash
+# from binary with live-reload (e.g. for template work)
+beady --dev 
+
+# or run from code without binary
 go run cmd/beady/main.go /path/to/.beads/name.db
 ```
 
