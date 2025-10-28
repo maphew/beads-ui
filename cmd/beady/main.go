@@ -49,12 +49,44 @@ func init() {
 }
 
 func parseTemplates() {
-	tmplIndex = template.Must(template.ParseFS(tmplFS, "templates/index.html"))
-	tmplDetail = template.Must(template.ParseFS(tmplFS, "templates/detail.html"))
-	tmplGraph = template.Must(template.ParseFS(tmplFS, "templates/graph.html"))
-	tmplReady = template.Must(template.ParseFS(tmplFS, "templates/ready.html"))
-	tmplBlocked = template.Must(template.ParseFS(tmplFS, "templates/blocked.html"))
-	tmplIssuesTbody = template.Must(template.ParseFS(tmplFS, "templates/issues_tbody.html"))
+	var err error
+
+	tmplIndex, err = template.ParseFS(tmplFS, "templates/index.html")
+	if err != nil {
+		log.Printf("Error parsing templates/index.html: %v", err)
+		// Provide a non-nil fallback to avoid immediate nil deref during Serve
+		tmplIndex = template.New("index")
+	}
+
+	tmplDetail, err = template.ParseFS(tmplFS, "templates/detail.html")
+	if err != nil {
+		log.Printf("Error parsing templates/detail.html: %v", err)
+		tmplDetail = template.New("detail")
+	}
+
+	tmplGraph, err = template.ParseFS(tmplFS, "templates/graph.html")
+	if err != nil {
+		log.Printf("Error parsing templates/graph.html: %v", err)
+		tmplGraph = template.New("graph")
+	}
+
+	tmplReady, err = template.ParseFS(tmplFS, "templates/ready.html")
+	if err != nil {
+		log.Printf("Error parsing templates/ready.html: %v", err)
+		tmplReady = template.New("ready")
+	}
+
+	tmplBlocked, err = template.ParseFS(tmplFS, "templates/blocked.html")
+	if err != nil {
+		log.Printf("Error parsing templates/blocked.html: %v", err)
+		tmplBlocked = template.New("blocked")
+	}
+
+	tmplIssuesTbody, err = template.ParseFS(tmplFS, "templates/issues_tbody.html")
+	if err != nil {
+		log.Printf("Error parsing templates/issues_tbody.html: %v", err)
+		tmplIssuesTbody = template.New("issues_tbody")
+	}
 }
 
 var store beads.Storage
