@@ -48,7 +48,7 @@ func main() {
 	fmt.Printf("Building for branch '%s' -> %s\n", branch, output)
 
 	// Build
-	buildCmd := exec.Command("go", "build", "-o", output, "./cmd/beady")
+	buildCmd := exec.Command("go", "build", "-o", "bin/"+output, "./cmd/beady")
 	buildOutput, err := buildCmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("Error building: %v\n%s\n", err, string(buildOutput))
