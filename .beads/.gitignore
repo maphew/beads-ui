@@ -5,14 +5,15 @@
 *.db-shm
 
 # Daemon runtime files
+daemon.lock
 daemon.log
 daemon.pid
-daemon.lock
 bd.sock
 
 # Legacy database files
 db.sqlite
 bd.db
 
-# Keep JSONL exports (source of truth for git)
+# Keep JSONL exports and config (source of truth for git)
 !*.jsonl
+!config.json
