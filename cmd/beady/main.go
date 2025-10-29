@@ -23,7 +23,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/websocket"
-	"github.com/maphew/beads-ui/assets/beady"
+	"github.com/maphew/beady/assets/beady"
 	"github.com/steveyegge/beads"
 )
 
@@ -51,41 +51,47 @@ func init() {
 func parseTemplates() {
 	var err error
 
-	tmplIndex, err = template.ParseFS(tmplFS, "templates/index.html")
+	funcMap := template.FuncMap{
+		"lower": strings.ToLower,
+		"upper": strings.ToUpper,
+		"title": strings.Title,
+	}
+
+	tmplIndex, err = template.New("index").Funcs(funcMap).ParseFS(tmplFS, "templates/index.html")
 	if err != nil {
 		log.Printf("Error parsing templates/index.html: %v", err)
 		// Provide a non-nil fallback to avoid immediate nil deref during Serve
-		tmplIndex = template.New("index")
+		tmplIndex = template.New("index").Funcs(funcMap)
 	}
 
-	tmplDetail, err = template.ParseFS(tmplFS, "templates/detail.html")
+	tmplDetail, err = template.New("detail").Funcs(funcMap).ParseFS(tmplFS, "templates/detail.html")
 	if err != nil {
 		log.Printf("Error parsing templates/detail.html: %v", err)
-		tmplDetail = template.New("detail")
+		tmplDetail = template.New("detail").Funcs(funcMap)
 	}
 
-	tmplGraph, err = template.ParseFS(tmplFS, "templates/graph.html")
+	tmplGraph, err = template.New("graph").Funcs(funcMap).ParseFS(tmplFS, "templates/graph.html")
 	if err != nil {
 		log.Printf("Error parsing templates/graph.html: %v", err)
-		tmplGraph = template.New("graph")
+		tmplGraph = template.New("graph").Funcs(funcMap)
 	}
 
-	tmplReady, err = template.ParseFS(tmplFS, "templates/ready.html")
+	tmplReady, err = template.New("ready").Funcs(funcMap).ParseFS(tmplFS, "templates/ready.html")
 	if err != nil {
 		log.Printf("Error parsing templates/ready.html: %v", err)
-		tmplReady = template.New("ready")
+		tmplReady = template.New("ready").Funcs(funcMap)
 	}
 
-	tmplBlocked, err = template.ParseFS(tmplFS, "templates/blocked.html")
+	tmplBlocked, err = template.New("blocked").Funcs(funcMap).ParseFS(tmplFS, "templates/blocked.html")
 	if err != nil {
 		log.Printf("Error parsing templates/blocked.html: %v", err)
-		tmplBlocked = template.New("blocked")
+		tmplBlocked = template.New("blocked").Funcs(funcMap)
 	}
 
-	tmplIssuesTbody, err = template.ParseFS(tmplFS, "templates/issues_tbody.html")
+	tmplIssuesTbody, err = template.New("issues_tbody").Funcs(funcMap).ParseFS(tmplFS, "templates/issues_tbody.html")
 	if err != nil {
 		log.Printf("Error parsing templates/issues_tbody.html: %v", err)
-		tmplIssuesTbody = template.New("issues_tbody")
+		tmplIssuesTbody = template.New("issues_tbody").Funcs(funcMap)
 	}
 }
 
@@ -129,7 +135,7 @@ func broadcast(message string) {
 }
 
 // handleWS upgrades an HTTP connection to a WebSocket and manages the connection lifecycle for live reloads.
-// 
+//
 // It registers the new client and cancels any pending shutdown timer while connected. When the client
 // disconnects it is removed; if no clients remain a 5-second timer is started to terminate the process.
 // The handler keeps the connection alive by continuously reading messages until an error occurs.
@@ -178,7 +184,7 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 }
 
 // startFileWatcher watches the embedded assets/beady/templates and assets/beady/static directories for file changes and triggers live-reload actions.
-// 
+//
 // When a change is detected it logs the change, re-parses HTML templates if a template file was modified, and broadcasts a "reload" message to connected WebSocket clients.
 // It also logs watcher errors.
 func startFileWatcher() {
