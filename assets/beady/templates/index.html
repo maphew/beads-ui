@@ -32,9 +32,9 @@
             <input type="search" name="search" placeholder="Search issues..." aria-label="Search issues">
             <select name="status" aria-label="Filter by status">
                 <option value="">All Status</option>
-                <option value="open">Open</option>
-                <option value="in_progress">In Progress</option>
-                <option value="closed">Closed</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Closed">Closed</option>
             </select>
             <select name="priority" aria-label="Filter by priority">
                 <option value="">All Priority</option>
@@ -53,7 +53,7 @@
                     <header>
                         <h3><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></h3>
                     </header>
-                    <p><strong>Status:</strong> <span class="status-{{.Status | lower}}">{{.Status}}</span></p>
+                    <p><strong>Status:</strong> <span class="status-{{.Status | lower}}">{{.Status | string}}</span></p>
                     <p><strong>Priority:</strong> {{.Priority}}</p>
                     <p><strong>Deps:</strong> {{.DepsCount}} | <strong>Blockers:</strong> {{.BlockersCount}}</p>
                     <footer>
@@ -73,6 +73,7 @@
                         <header>
                             <h3><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></h3>
                         </header>
+                        <p><strong>Status:</strong> {{.Status | string}}</p>
                         <p><strong>Priority:</strong> {{.Priority}}</p>
                         <p><strong>Deps:</strong> {{.DepsCount}} | <strong>Blockers:</strong> {{.BlockersCount}}</p>
                         <footer>
@@ -90,6 +91,7 @@
                         <header>
                             <h3><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></h3>
                         </header>
+                        <p><strong>Status:</strong> {{.Status | string}}</p>
                         <p><strong>Priority:</strong> {{.Priority}}</p>
                         <p><strong>Deps:</strong> {{.DepsCount}} | <strong>Blockers:</strong> {{.BlockersCount}}</p>
                         <footer>
@@ -107,6 +109,7 @@
                         <header>
                             <h3><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></h3>
                         </header>
+                        <p><strong>Status:</strong> {{.Status | string}}</p>
                         <p><strong>Priority:</strong> {{.Priority}}</p>
                         <p><strong>Deps:</strong> {{.DepsCount}} | <strong>Blockers:</strong> {{.BlockersCount}}</p>
                         <footer>
@@ -123,7 +126,7 @@
                 {{range .Issues}}
                 <li>
                     <h4><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></h4>
-                    <p>Status: <span class="status-{{.Status | lower}}">{{.Status}}</span> | Priority: {{.Priority}} | Created: {{.CreatedAt}}</p>
+                    <p>Status: <span class="status-{{.Status | lower}}">{{.Status | string}}</span> | Priority: {{.Priority}} | Created: {{.CreatedAt}}</p>
                     <p>Deps: {{.DepsCount}} | Blockers: {{.BlockersCount}}</p>
                     {{if .Labels}}<p>Labels: {{range .Labels}}<span class="label">{{.}}</span>{{end}}</p>{{end}}
                 </li>
