@@ -23,7 +23,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/websocket"
-	"github.com/maphew/beads-ui/assets/beady"
+	"github.com/maphew/beady/assets/beady"
 	"github.com/steveyegge/beads"
 )
 
@@ -33,12 +33,7 @@ var tmplFS fs.FS
 
 // Pre-parse templates at package init for performance
 var (
-	tmplIndex       *template.Template
-	tmplDetail      *template.Template
-	tmplGraph       *template.Template
-	tmplReady       *template.Template
-	tmplBlocked     *template.Template
-	tmplIssuesTbody *template.Template
+	tmplAll *template.Template
 )
 
 func init() {
@@ -49,12 +44,63 @@ func init() {
 }
 
 func parseTemplates() {
-	tmplIndex = template.Must(template.ParseFS(tmplFS, "templates/index.html"))
-	tmplDetail = template.Must(template.ParseFS(tmplFS, "templates/detail.html"))
-	tmplGraph = template.Must(template.ParseFS(tmplFS, "templates/graph.html"))
-	tmplReady = template.Must(template.ParseFS(tmplFS, "templates/ready.html"))
-	tmplBlocked = template.Must(template.ParseFS(tmplFS, "templates/blocked.html"))
-	tmplIssuesTbody = template.Must(template.ParseFS(tmplFS, "templates/issues_tbody.html"))
+	funcMap := template.FuncMap{
+		"lower": func(v interface{}) string {
+			if v == nil {
+				return ""
+			}
+			return strings.ToLower(fmt.Sprintf("%v", v))
+		},
+		"upper": strings.ToUpper,
+		"title": strings.Title,
+		"string": func(v interface{}) string {
+			if v == nil {
+				return ""
+			}
+			return fmt.Sprintf("%v", v)
+		},
+	}
+
+	// Create master template and ensure funcs are available to all templates.
+	tmplAll = template.New("all").Funcs(funcMap)
+
+	// Read the templates directory from tmplFS and parse each file with a stable name.
+	entries, err := fs.ReadDir(tmplFS, "templates")
+	if err != nil {
+		log.Fatalf("Error reading templates directory: %v", err)
+	}
+
+	parsed := 0
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		name := e.Name()
+		if !strings.HasSuffix(name, ".html") {
+			continue
+		}
+		path := "templates/" + name
+		content, err := fs.ReadFile(tmplFS, path)
+		if err != nil {
+			log.Fatalf("Error reading template %s: %v", path, err)
+		}
+		// Parse file into a named template (use the base filename as the template name).
+		if _, err := tmplAll.New(name).Parse(string(content)); err != nil {
+			log.Fatalf("Error parsing template %s: %v", path, err)
+		}
+		parsed++
+	}
+
+	if parsed == 0 {
+		log.Fatalf("No templates parsed from templates/ (checked %d entries)", len(entries))
+	}
+
+	// Log available templates for easier debugging
+	var names []string
+	for _, t := range tmplAll.Templates() {
+		names = append(names, t.Name())
+	}
+	log.Printf("Parsed %d templates: %s", parsed, strings.Join(names, ", "))
 }
 
 var store beads.Storage
@@ -97,7 +143,7 @@ func broadcast(message string) {
 }
 
 // handleWS upgrades an HTTP connection to a WebSocket and manages the connection lifecycle for live reloads.
-// 
+//
 // It registers the new client and cancels any pending shutdown timer while connected. When the client
 // disconnects it is removed; if no clients remain a 5-second timer is started to terminate the process.
 // The handler keeps the connection alive by continuously reading messages until an error occurs.
@@ -146,7 +192,7 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 }
 
 // startFileWatcher watches the embedded assets/beady/templates and assets/beady/static directories for file changes and triggers live-reload actions.
-// 
+//
 // When a change is detected it logs the change, re-parses HTML templates if a template file was modified, and broadcasts a "reload" message to connected WebSocket clients.
 // It also logs watcher errors.
 func startFileWatcher() {
@@ -346,8 +392,9 @@ func main() {
 
 // handleIndex serves the main index page showing issues and statistics.
 // It validates that the request path is "/" and the method is GET, then
-// fetches up to 100 issues, enriches them with labels and dependency counts,
-// obtains overall statistics, and renders the index template.
+// fetches up to 100 issues, applies search/filter parameters from the URL,
+// enriches them with labels and dependency counts, obtains overall statistics,
+// and renders the index template.
 // Responds with 404 for non-root paths, 405 for non-GET methods, and 500 for
 // storage or template rendering errors.
 func handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -361,7 +408,26 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	issues, err := store.SearchIssues(ctx, "", beads.IssueFilter{})
+
+	// Build filter from URL parameters
+	searchQuery := r.URL.Query().Get("search")
+	filter := beads.IssueFilter{}
+
+	// Status filter
+	if statusStr := r.URL.Query().Get("status"); statusStr != "" {
+		// Convert to lowercase to match the database storage format
+		s := beads.Status(strings.ToLower(statusStr))
+		filter.Status = &s
+	}
+
+	// Priority filter
+	if priorityStr := r.URL.Query().Get("priority"); priorityStr != "" {
+		if p, err := strconv.Atoi(priorityStr); err == nil {
+			filter.Priority = &p
+		}
+	}
+
+	issues, err := store.SearchIssues(ctx, searchQuery, filter)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -386,8 +452,9 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmplIndex.Execute(w, data); err != nil {
+	if err := tmplAll.ExecuteTemplate(w, "index.html", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -424,9 +491,9 @@ func handleIssueDetail(w http.ResponseWriter, r *http.Request) {
 		"HasDeps":    len(deps) > 0 || len(dependents) > 0,
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmplDetail.Execute(w, data); err != nil {
+	if err := tmplAll.ExecuteTemplate(w, "detail.html", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -456,9 +523,9 @@ func handleGraph(w http.ResponseWriter, r *http.Request) {
 		"DotGraph": dotGraph,
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmplGraph.Execute(w, data); err != nil {
+	if err := tmplAll.ExecuteTemplate(w, "graph.html", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -506,9 +573,9 @@ func handleReady(w http.ResponseWriter, r *http.Request) {
 		"ExcludeLabel": excludeLabel,
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmplReady.Execute(w, data); err != nil {
+	if err := tmplAll.ExecuteTemplate(w, "ready.html", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -534,7 +601,7 @@ func handleBlocked(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmplBlocked.Execute(w, data); err != nil {
+	if err := tmplAll.ExecuteTemplate(w, "blocked.html", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -581,15 +648,13 @@ func handleAPIIssues(w http.ResponseWriter, r *http.Request) {
 	// Check if htmx request (return partial HTML)
 	if r.Header.Get("HX-Request") == "true" {
 		issuesWithLabels := enrichIssuesWithLabels(ctx, issues)
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		if err := tmplIssuesTbody.Execute(w, issuesWithLabels); err != nil {
+		if err := tmplAll.ExecuteTemplate(w, "issues_tbody.html", issuesWithLabels); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
 
 	// Regular JSON response
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(issues); err != nil {
 		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
 	}

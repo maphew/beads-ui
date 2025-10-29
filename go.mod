@@ -1,4 +1,4 @@
-module github.com/maphew/beads-ui
+module github.com/maphew/beady
 
 go 1.24.0
 

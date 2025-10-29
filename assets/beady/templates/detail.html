@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,15 +8,19 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <header>
-        <h1>Issue {{.Issue.ID}}</h1>
-        <a href="/">← Back to Issues</a>
-    </header>
+    <nav aria-label="breadcrumb">
+        <ol>
+            <li><a href="/">Home</a></li>
+            <li>{{.Issue.ID}}</li>
+        </ol>
+    </nav>
 
     <main>
-        <div class="issue-detail">
-            <h2>{{.Issue.Title}}</h2>
-            <p><strong>Status:</strong> {{.Issue.Status}}</p>
+        <article class="card">
+            <header>
+                <h1>{{.Issue.ID}}: {{.Issue.Title}}</h1>
+            </header>
+            <p><strong>Status:</strong> <span class="status-{{.Issue.Status | lower}}">{{.Issue.Status}}</span></p>
             <p><strong>Priority:</strong> {{.Issue.Priority}}</p>
             <p><strong>Type:</strong> {{.Issue.IssueType}}</p>
             <p><strong>Created:</strong> {{.Issue.CreatedAt}}</p>
@@ -24,46 +28,57 @@
             {{if .Issue.Description}}
             <p><strong>Description:</strong> {{.Issue.Description}}</p>
             {{end}}
-        </div>
+        </article>
 
         {{if .HasDeps}}
-        <section class="dependencies">
-            <h3>Dependencies</h3>
-            <ul>
-                {{range .Deps}}
-                <li><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></li>
-                {{end}}
-            </ul>
-
-            <h3>Blocked By</h3>
-            <ul>
-                {{range .Dependents}}
-                <li><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></li>
-                {{end}}
-            </ul>
+        <section class="tabs">
+            <nav>
+                <ul>
+                    <li><a href="#deps" aria-current="page">Dependencies</a></li>
+                    <li><a href="#blocked">Blocked By</a></li>
+                </ul>
+            </nav>
+            <div id="deps">
+                <ul>
+                    {{range .Deps}}
+                    <li><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></li>
+                    {{end}}
+                </ul>
+                {{if not .Deps}}<p>No dependencies.</p>{{end}}
+            </div>
+            <div id="blocked">
+                <ul>
+                    {{range .Dependents}}
+                    <li><a href="/issue/{{.ID}}">{{.ID}}: {{.Title}}</a></li>
+                    {{end}}
+                </ul>
+                {{if not .Dependents}}<p>Not blocking any issues.</p>{{end}}
+            </div>
         </section>
         {{end}}
 
-        <section class="labels">
+        <section>
             <h3>Labels</h3>
             <div>
                 {{range .Labels}}
                 <span class="label">{{.}}</span>
                 {{end}}
             </div>
+            {{if not .Labels}}<p>No labels.</p>{{end}}
         </section>
 
-        <section class="events">
+        <section>
             <h3>Recent Events</h3>
             <ul>
                 {{range .Events}}
                 <li>{{.Timestamp}}: {{.EventType}} - {{.Description}}</li>
                 {{end}}
             </ul>
+            {{if not .Events}}<p>No recent events.</p>{{end}}
         </section>
 
         <div class="actions">
-            <a href="/graph/{{.Issue.ID}}">View Dependency Graph</a>
+            <a href="/graph/{{.Issue.ID}}" class="btn">View Dependency Graph</a>
         </div>
     </main>
 
