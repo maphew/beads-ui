@@ -25,6 +25,7 @@ _--> Also see [mantoni/beads-ui](https://github.com/mantoni/beads-ui from @manto
 - **Blocked issues view** with blocker details
 - **Statistics dashboard** showing open/closed/in-progress counts
 - **Theme customization** with light/dark/auto modes and persistent preferences
+- **Graceful shutdown** via UI button (no need for task manager or kill commands)
 
 ## Installation
 
@@ -106,6 +107,16 @@ You can switch themes using the dropdown in the header. Your preference is autom
 If no database path is provided, the application will automatically search for a beads database in the current directory and standard locations (e.g., `.beads/name.db`).
 
 If no database is found, it will fall back to creating a new empty database.
+
+### Shutting Down
+
+To stop the Beady server, you have two options:
+
+1. **Via the UI**: Click the "Shutdown" button in the header of any page. You'll be prompted to confirm before the server shuts down gracefully.
+
+2. **Via keyboard**: Press `Ctrl+C` in the terminal where Beady is running.
+
+The UI shutdown button is particularly useful when running Beady in the background or when you don't have easy access to the terminal. It performs a graceful shutdown without needing to use task manager or system kill commands.
 
 ## Development
 
