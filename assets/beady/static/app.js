@@ -36,11 +36,67 @@ function initTheme() {
     }
 }
 
+// Immediate filter functionality
+let filterTimeout = null;
+
+function applyFilters() {
+    const form = document.getElementById('filter-form');
+    if (!form) return;
+
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+
+    // Update URL without reload
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({}, '', newUrl);
+
+    // Fetch filtered content and reload page
+    // Simple implementation: just reload the page with new params
+    window.location.href = newUrl;
+}
+
+function initFilters() {
+    const searchInput = document.getElementById('search-input');
+    const statusSelect = document.getElementById('status-select');
+    const prioritySelect = document.getElementById('priority-select');
+
+    // Add debounced listener to search input (500ms delay)
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            if (filterTimeout) clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(applyFilters, 500);
+        });
+    }
+
+    // Add immediate listeners to selects (no delay)
+    if (statusSelect) {
+        statusSelect.addEventListener('change', applyFilters);
+    }
+    if (prioritySelect) {
+        prioritySelect.addEventListener('change', applyFilters);
+    }
+
+    // Restore filter values from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (searchInput && urlParams.has('search')) {
+        searchInput.value = urlParams.get('search');
+    }
+    if (statusSelect && urlParams.has('status')) {
+        statusSelect.value = urlParams.get('status');
+    }
+    if (prioritySelect && urlParams.has('priority')) {
+        prioritySelect.value = urlParams.get('priority');
+    }
+}
+
 // View selector functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize theme
     initTheme();
-    
+
+    // Initialize filters
+    initFilters();
+
     const viewSelect = document.getElementById('view-select');
     const views = {
         grid: document.getElementById('grid-view'),
