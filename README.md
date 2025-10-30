@@ -137,6 +137,29 @@ cd cmd
 go run create_test_db_main.go /path/to/test.db
 ```
 
+### API Endpoints
+
+Beady provides the following HTTP endpoints:
+
+#### Web Pages
+- `GET /` - Main issue list with filtering (search, status, priority)
+- `GET /ready` - Ready work view (unblocked issues)
+- `GET /blocked` - Blocked issues view
+- `GET /issue/{id}` - Issue detail page with dependencies and events
+- `GET /graph/{id}` - Dependency graph visualization
+
+#### API (JSON)
+- `GET /api/issues` - List all issues (supports `?search=`, `?status=`, `?priority=` filters)
+- `GET /api/issue/{id}` - Get single issue details
+- `GET /api/stats` - Get statistics (total, open, in-progress, closed counts)
+- `POST /api/shutdown` - Gracefully shutdown the server
+
+#### Static Assets
+- `GET /static/*` - CSS, JavaScript, and other static files
+
+#### Development Only
+- `GET /ws` - WebSocket endpoint for live-reload (only in `--dev` mode)
+
 ### Releasing
 
 This project follows semantic versioning. To release a new version:
