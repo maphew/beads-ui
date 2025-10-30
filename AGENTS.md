@@ -39,21 +39,25 @@ Never commit secrets; load them from `.env` or environment variables using packa
 bd ready --json
 ```
 
+**Note:** for an `"id": "beady-13"` the part before `-` is the database name. There can be multiple databases.
+
+
+
 **Create new issues:**
 ```bash
 bd create "Issue title" -t bug|feature|task -p 0-4 --json
-bd create "Issue title" -p 1 --deps discovered-from:bd-123 --json
+bd create "Issue title" -p 1 --deps discovered-from:beady-123 --json
 ```
 
 **Claim and update:**
 ```bash
-bd update bd-42 --status in_progress --json
-bd update bd-42 --priority 1 --json
+bd update beady-42 --status in_progress --json
+bd update beady-42 --priority 1 --json
 ```
 
 **Complete work:**
 ```bash
-bd close bd-42 --reason "Completed" --json
+bd close beady-42 --reason "Completed" --json
 ```
 
 ### Issue Types
