@@ -38,7 +38,20 @@
             <p><strong>Created:</strong> {{.Issue.CreatedAt}}</p>
             <p><strong>Updated:</strong> {{.Issue.UpdatedAt}}</p>
             {{if .Issue.Description}}
-            <p><strong>Description:</strong> {{.Issue.Description}}</p>
+            <div><strong>Description:</strong></div>
+            <p style="white-space: pre-wrap;">{{.Issue.Description}}</p>
+            {{end}}
+            {{if .Issue.Design}}
+            <div><strong>Design:</strong></div>
+            <p style="white-space: pre-wrap;">{{.Issue.Design}}</p>
+            {{end}}
+            {{if .Issue.AcceptanceCriteria}}
+            <div><strong>Acceptance Criteria:</strong></div>
+            <p style="white-space: pre-wrap;">{{.Issue.AcceptanceCriteria}}</p>
+            {{end}}
+            {{if .Issue.Notes}}
+            <div><strong>Notes:</strong></div>
+            <p style="white-space: pre-wrap;">{{.Issue.Notes}}</p>
             {{end}}
         </article>
 
@@ -77,6 +90,22 @@
                 {{end}}
             </div>
             {{if not .Labels}}<p>No labels.</p>{{end}}
+        </section>
+
+        <section>
+            <h3>Comments</h3>
+            {{if .Issue.Comments}}
+            <ul>
+                {{range .Issue.Comments}}
+                <li>
+                    <strong>{{.CreatedAt}}</strong>{{if .CreatedBy}} by {{.CreatedBy}}{{end}}
+                    <p style="white-space: pre-wrap;">{{.Text}}</p>
+                </li>
+                {{end}}
+            </ul>
+            {{else}}
+            <p>No comments.</p>
+            {{end}}
         </section>
 
         <section>

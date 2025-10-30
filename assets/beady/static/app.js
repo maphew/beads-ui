@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize filters
     initFilters();
 
-    const viewSelect = document.getElementById('view-select');
+    const viewRadios = document.querySelectorAll('input[name="view"]');
     const views = {
         grid: document.getElementById('grid-view'),
         kanban: document.getElementById('kanban-view'),
@@ -112,23 +112,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Restore selection from localStorage if available, otherwise use the current select value or 'timeline'
+    // Restore selection from localStorage if available, otherwise use 'timeline'
     const saved = (typeof localStorage !== 'undefined') ? localStorage.getItem('beady.view') : null;
-    const initial = saved && views[saved] ? saved : (viewSelect ? viewSelect.value : 'timeline');
+    const initial = saved && views[saved] ? saved : 'timeline';
     switchView(initial);
-    if (viewSelect && saved && views[saved]) {
-        viewSelect.value = saved;
-    }
 
-    if (viewSelect) {
-        viewSelect.addEventListener('change', function() {
-            const v = this.value;
-            switchView(v);
-            try {
-                localStorage.setItem('beady.view', v);
-            } catch (e) {
-                // ignore storage errors (e.g., privacy modes)
+    // Set the correct radio button as checked
+    viewRadios.forEach(radio => {
+        if (radio.value === initial) {
+            radio.checked = true;
+        }
+
+        // Add change listener to each radio button
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                const v = this.value;
+                switchView(v);
+                try {
+                    localStorage.setItem('beady.view', v);
+                } catch (e) {
+                    // ignore storage errors (e.g., privacy modes)
+                }
             }
         });
-    }
+    });
 });

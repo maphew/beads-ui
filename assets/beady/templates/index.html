@@ -26,14 +26,21 @@
             <article class="card"><h3>In Progress: {{.Stats.InProgressIssues}}</h3></article>
             <article class="card"><h3>Closed: {{.Stats.ClosedIssues}}</h3></article>
         </div>
-        <form id="view-selector">
-            <label for="view-select">View:</label>
-            <select id="view-select" aria-label="Select view">
-                <option value="grid">Grid</option>
-                <option value="kanban">Kanban</option>
-                <option value="timeline" selected>Timeline</option>
-            </select>
-        </form>
+        <fieldset id="view-selector" role="radiogroup" aria-label="Select view">
+            <legend>View:</legend>
+            <label>
+                <input type="radio" name="view" value="grid" id="view-grid">
+                Grid
+            </label>
+            <label>
+                <input type="radio" name="view" value="kanban" id="view-kanban">
+                Kanban
+            </label>
+            <label>
+                <input type="radio" name="view" value="timeline" id="view-timeline" checked>
+                Timeline
+            </label>
+        </fieldset>
     </header>
 
     <main>

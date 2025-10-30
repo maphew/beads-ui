@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/steveyegge/beads v0.14.0
+	github.com/steveyegge/beads v0.19.0
 )
 
 require (

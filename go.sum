@@ -16,6 +16,8 @@ github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/steveyegge/beads v0.14.0 h1:QDbJsddMZf0u8qqGUVLH3qXzzT0VQWT2LiBdhrwqlkg=
 github.com/steveyegge/beads v0.14.0/go.mod h1:SIOaxF5ubCHH58pxnOHKS2zkaDD0SMGy1tZZ1czQ7g4=
+github.com/steveyegge/beads v0.19.0 h1:2kP7yODl8CNCQVS0qSo9zAolcwVhWNhbeFQnFWGs3gU=
+github.com/steveyegge/beads v0.19.0/go.mod h1:ygQopoWksjdvWwn39JdXgXyu/sfvLf6u8xg08k3OFFE=
 golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b h1:M2rDM6z3Fhozi9O7NWsxAkg/yqS/lQJ6PmkyIV3YP+o=
 golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b/go.mod h1:3//PLf8L/X+8b4vuAfHzxeRUl04Adcb341+IGKfnqS8=
 golang.org/x/mod v0.29.0 h1:HV8lRxZC4l2cr3Zq1LvtOsi/ThTgWnUk/y64QSs8GwA=
