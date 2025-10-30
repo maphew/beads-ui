@@ -6,13 +6,16 @@
       "Bash(go run:*)",
       "Bash(.\\bin\\beady.exe:*)",
       "Bash(./bin/beady.exe:*)",
+      "Bash(beady:*)",
       "Bash(bd list:*)",
       "Bash(bd ready:*)",
       "Bash(bd show:*)",
       "Bash(go list:*)",
       "Bash(find:*)",
       "Bash(bd close:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(go doc:*)",
+      "Bash(bd:*)"
     ],
     "deny": [],
     "ask": []
