@@ -14,7 +14,7 @@ The PR which started it:
 https://github.com/steveyegge/beads/pull/77
 
 
-_--> Also see [mantoni/beads-ui](https://github.com/mantoni/beads-ui from @mantoni: ).**`bdui`** has a higher development velocity than beady and a bigger feature set. You might like that one better. I'm going to keep poking away at beady anyway as I want to pursue the everything in one file idea._
+_--> Also see [mantoni/beads-ui](https://github.com/mantoni/beads-ui from @mantoni. **`bdui`** has a higher development velocity than beady and a bigger feature set. You might like that one better. I'm going to keep poking away at beady anyway as I want to pursue the everything in one file idea._
 
 ## Features
 
