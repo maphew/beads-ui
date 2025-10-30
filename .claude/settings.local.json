@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bd:*)"
+      "Bash(bd :*)",
+      "Bash(where sqlite3:*)",
+      "Bash(go run:*)",
+      "Bash(.\\bin\\beady.exe:*)",
+      "Bash(./bin/beady.exe:*)"
     ],
     "deny": [],
     "ask": []
