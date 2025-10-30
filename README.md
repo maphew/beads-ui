@@ -1,10 +1,10 @@
 # beady - a ui for beads
 
-Standalone web UI for the beads issue tracker.
+A web UI for the beads issue tracker.
 
 ## Overview
 
-This is a standalone web interface for [beads](https://github.com/steveyegge/beads), a
+Beady is a web interface for [beads](https://github.com/steveyegge/beads), a
 dependency-aware issue tracker. It provides a graphical interface for browsing and
 visualizing issues, dependencies, and work status.
 
@@ -14,7 +14,7 @@ The PR which started it:
 https://github.com/steveyegge/beads/pull/77
 
 
-_--> Also see this other beads ui from @mantoni: [mantoni/beads-ui](https://github.com/mantoni/beads-ui)_
+_--> Also see [mantoni/beads-ui](https://github.com/mantoni/beads-ui from @mantoni: ).**`bdui`** has a higher development velocity than beady and a bigger feature set. You might like that one better. I'm going to keep poking away at beady anyway as I want to pursue the everything in one file idea._
 
 ## Features
 
