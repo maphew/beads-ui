@@ -15,6 +15,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -432,6 +433,11 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// Sort by UpdatedAt descending (most recently modified first)
+	sort.Slice(issues, func(i, j int) bool {
+		return issues[i].UpdatedAt.After(issues[j].UpdatedAt)
+	})
 
 	// Limit to first 100 issues
 	if len(issues) > 100 {
