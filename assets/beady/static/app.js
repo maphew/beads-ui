@@ -14,7 +14,7 @@ function applyTheme(theme) {
 
 function initTheme() {
     const themeSelect = document.getElementById('theme-select');
-    const savedTheme = (typeof localStorage !== 'undefined') ? localStorage.getItem('beady.theme') : 'auto';
+    const savedTheme = (typeof localStorage !== 'undefined') ? (localStorage.getItem('beady.theme') || 'auto') : 'auto';
     
     // Set initial theme
     applyTheme(savedTheme);

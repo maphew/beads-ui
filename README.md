@@ -139,7 +139,7 @@ This project follows semantic versioning. To release a new version:
 The web UI depends on the beads library for database access and issue management. It uses:
 
 - [htmx](https://htmx.org) for dynamic UI updates
-- [picocss](https://picoss.com) for styling and widgets
+- [picocss](https://picocss.com) for styling and widgets
 - [Graphviz](https://graphviz.org) for dependency graph visualization (server-side)
 
 ## License

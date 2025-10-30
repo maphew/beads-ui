@@ -25,7 +25,7 @@ Implemented a complete light/dark/auto theme toggle system for the Beady issue t
 **HTML Structure:**
 ```html
 <div class="header-top">
-    <h1>Beads Issue Tracker</h1>
+    <h1>Beady Issue Tracker</h1>
     <div class="theme-control">
         <label for="theme-select">Theme:</label>
         <select id="theme-select" aria-label="Select theme">
