@@ -24,6 +24,7 @@ _--> Also see [mantoni/beads-ui](https://github.com/mantoni/beads-ui from @manto
 - **Ready work view** (unblocked issues)
 - **Blocked issues view** with blocker details
 - **Statistics dashboard** showing open/closed/in-progress counts
+- **Theme customization** with light/dark/auto modes and persistent preferences
 
 ## Installation
 
@@ -59,6 +60,7 @@ cd beady
 2. Build the web UI:
 ```bash
 go run build.go
+# executable will be in ./bin/
 ```
 
 ### Local development with beads
@@ -74,20 +76,30 @@ If you're developing both beads-ui and beads together:
 Run the web UI with an optional path to a beads database:
 
 ```bash
-./beady [path/to/.beads/name.db] [port]
+beady [path/to/.beads/name.db] [port]
 ```
 
 For example, to use autodiscovery:
 ```bash
-./beady 8080
+beady 8080
 ```
 
 Or specify a path:
 ```bash
-./beady .beads/name.db 8080
+beady .beads/name.db 8080
 ```
 
 The web UI will start on `http://127.0.0.1:8080` (or the specified port).
+
+### Theme Customization
+
+Beady supports three theme modes for comfortable viewing in different environments:
+
+- **Auto** (default): Automatically follows your system's dark/light preference
+- **Light**: Forces light theme regardless of system setting
+- **Dark**: Forces dark theme regardless of system setting
+
+You can switch themes using the dropdown in the header. Your preference is automatically saved and will persist across browser sessions.
 
 ### Autodiscovery
 
@@ -127,6 +139,7 @@ This project follows semantic versioning. To release a new version:
 The web UI depends on the beads library for database access and issue management. It uses:
 
 - [htmx](https://htmx.org) for dynamic UI updates
+- [picocss](https://picoss.com) for styling and widgets
 - [Graphviz](https://graphviz.org) for dependency graph visualization (server-side)
 
 ## License

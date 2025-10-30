@@ -2,8 +2,45 @@
 
 console.log('Beads UI loaded');
 
+// Theme functionality
+function applyTheme(theme) {
+    const html = document.documentElement;
+    if (theme === 'auto') {
+        html.removeAttribute('data-theme');
+    } else {
+        html.setAttribute('data-theme', theme);
+    }
+}
+
+function initTheme() {
+    const themeSelect = document.getElementById('theme-select');
+    const savedTheme = (typeof localStorage !== 'undefined') ? localStorage.getItem('beady.theme') : 'auto';
+    
+    // Set initial theme
+    applyTheme(savedTheme);
+    if (themeSelect) {
+        themeSelect.value = savedTheme;
+    }
+    
+    // Listen for theme changes
+    if (themeSelect) {
+        themeSelect.addEventListener('change', function() {
+            const theme = this.value;
+            applyTheme(theme);
+            try {
+                localStorage.setItem('beady.theme', theme);
+            } catch (e) {
+                // ignore storage errors (e.g., privacy modes)
+            }
+        });
+    }
+}
+
 // View selector functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize theme
+    initTheme();
+    
     const viewSelect = document.getElementById('view-select');
     const views = {
         grid: document.getElementById('grid-view'),

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +12,17 @@
 </head>
 <body>
     <header>
-        <h1>Dependency Graph: {{.Issue.Title}}</h1>
+        <div class="header-top">
+            <h1>Dependency Graph: {{.Issue.Title}}</h1>
+            <div class="theme-control">
+                <label for="theme-select">Theme:</label>
+                <select id="theme-select" aria-label="Select theme">
+                    <option value="auto">Auto</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+        </div>
         <a href="/issue/{{.Issue.ID}}">← Back to Issue</a>
     </header>
 

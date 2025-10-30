@@ -8,12 +8,24 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <nav aria-label="breadcrumb">
-        <ol>
-            <li><a href="/">Home</a></li>
-            <li>{{.Issue.ID}}</li>
-        </ol>
-    </nav>
+    <header>
+        <div class="header-top">
+            <nav aria-label="breadcrumb">
+                <ol>
+                    <li><a href="/">Home</a></li>
+                    <li>{{.Issue.ID}}</li>
+                </ol>
+            </nav>
+            <div class="theme-control">
+                <label for="theme-select">Theme:</label>
+                <select id="theme-select" aria-label="Select theme">
+                    <option value="auto">Auto</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+        </div>
+    </header>
 
     <main>
         <article class="card">
@@ -71,7 +83,7 @@
             <h3>Recent Events</h3>
             <ul>
                 {{range .Events}}
-                <li>{{.Timestamp}}: {{.EventType}} - {{.Description}}</li>
+                <li>{{.CreatedAt}}: {{.EventType}}</li>
                 {{end}}
             </ul>
             {{if not .Events}}<p>No recent events.</p>{{end}}

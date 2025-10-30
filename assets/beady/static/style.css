@@ -18,6 +18,55 @@
     --status-closed: hsl(0, 50%, 90%);
     --status-closed-dark: hsl(0, 50%, 25%);
     --dense-spacing: 0.5rem;
+    
+    /* Lane colors */
+    --lane-open: hsl(120, 25%, 25%);
+    --lane-in-progress: hsl(45, 100%, 35%);
+    --lane-closed: hsl(0, 50%, 30%);
+}
+
+body {
+    background-color: var(--pico-background-color);
+}
+
+/* Header layout */
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--pico-spacing);
+}
+
+.theme-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.theme-control label {
+    margin: 0;
+    font-weight: var(--pico-font-weight);
+    color: var(--pico-color);
+}
+
+.theme-control select {
+    width: auto;
+    margin-bottom: 0;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    min-width: 8rem;
+}
+
+@media (max-width: 768px) {
+    .header-top {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .theme-control {
+        width: 100%;
+        justify-content: space-between;
+    }
 }
 
 [data-theme="dark"] {
@@ -37,6 +86,11 @@
     --status-in-progress-dark: hsl(45, 100%, 85%);
     --status-closed: hsl(0, 50%, 15%);
     --status-closed-dark: hsl(0, 50%, 85%);
+    
+    /* Lane colors for dark theme */
+    --lane-open: hsl(120, 25%, 85%);
+    --lane-in-progress: hsl(45, 100%, 85%);
+    --lane-closed: hsl(0, 50%, 85%);
 }
 
 body {

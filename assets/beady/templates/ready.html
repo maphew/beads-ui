@@ -9,7 +9,17 @@
 </head>
 <body>
     <header>
-        <h1>Ready Work</h1>
+        <div class="header-top">
+            <h1>Ready Work</h1>
+            <div class="theme-control">
+                <label for="theme-select">Theme:</label>
+                <select id="theme-select" aria-label="Select theme">
+                    <option value="auto">Auto</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+        </div>
         <div class="grid">
             <article class="card"><h3>Total: {{.Stats.TotalIssues}}</h3></article>
             <article class="card"><h3>Open: {{.Stats.OpenIssues}}</h3></article>
