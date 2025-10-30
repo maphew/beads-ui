@@ -55,5 +55,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Built %s successfully\n", output)
+	fmt.Printf("Built bin/%s successfully\n", output)
 }
