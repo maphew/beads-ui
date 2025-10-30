@@ -89,6 +89,31 @@ function initFilters() {
     }
 }
 
+// Shutdown functionality
+function initShutdown() {
+    const shutdownBtn = document.getElementById('shutdown-btn');
+    if (!shutdownBtn) return;
+
+    shutdownBtn.addEventListener('click', function() {
+        if (confirm('Are you sure you want to shutdown the server?')) {
+            fetch('/api/shutdown', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Shutdown initiated:', data);
+                // Show a message to the user
+                shutdownBtn.textContent = 'Shutting down...';
+                shutdownBtn.disabled = true;
+            })
+            .catch(error => {
+                console.error('Shutdown error:', error);
+                alert('Error shutting down server');
+            });
+        }
+    });
+}
+
 // View selector functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize theme
@@ -96,6 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize filters
     initFilters();
+
+    // Initialize shutdown button
+    initShutdown();
 
     const viewRadios = document.querySelectorAll('input[name="view"]');
     const views = {

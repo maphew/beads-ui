@@ -110,6 +110,8 @@ var devMode bool
 
 var help = flag.Bool("help", false, "Show help")
 
+var srv *http.Server
+
 func printUsage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port] [-d] [--help]\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "Options:\n")
@@ -327,12 +329,13 @@ func main() {
 	mux.HandleFunc("/api/issues", handleAPIIssues)
 	mux.HandleFunc("/api/issue/", handleAPIIssue)
 	mux.HandleFunc("/api/stats", handleAPIStats)
+	mux.HandleFunc("/api/shutdown", handleAPIShutdown)
 	if devMode {
 		mux.HandleFunc("/ws", handleWS)
 	}
 	mux.HandleFunc("/static/", handleStatic)
 
-	srv := &http.Server{
+	srv = &http.Server{
 		Addr:         addr,
 		Handler:      mux,
 		ReadTimeout:  5 * time.Second,
@@ -809,6 +812,30 @@ func openBrowser(url string) error {
 		cmd = exec.Command("xdg-open", url)
 	}
 	return cmd.Start()
+}
+
+// handleAPIShutdown handles graceful shutdown requests from the web UI.
+// It responds with a JSON success message and triggers a graceful server shutdown in a goroutine.
+// Only POST requests are accepted; other methods receive a 405 Method Not Allowed error.
+func handleAPIShutdown(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "shutting down"})
+
+	// Trigger shutdown in a goroutine to allow response to be sent
+	go func() {
+		time.Sleep(100 * time.Millisecond) // Give response time to be sent
+		log.Println("Shutdown requested via API")
+		if err := srv.Shutdown(context.Background()); err != nil {
+			log.Printf("Shutdown error: %v", err)
+		}
+		os.Exit(0)
+	}()
 }
 
 // handleStatic serves files requested under the /static/ path from the configured template filesystem.

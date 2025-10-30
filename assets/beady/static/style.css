@@ -37,6 +37,12 @@ body {
     margin-bottom: var(--pico-spacing);
 }
 
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .theme-control {
     display: flex;
     align-items: center;
@@ -56,16 +62,31 @@ body {
     min-width: 8rem;
 }
 
+#shutdown-btn {
+    margin-bottom: 0;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+}
+
 @media (max-width: 768px) {
     .header-top {
         flex-direction: column;
         gap: 1rem;
         align-items: flex-start;
     }
-    
-    .theme-control {
+
+    .header-controls {
         width: 100%;
-        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .theme-control {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    #shutdown-btn {
+        flex-shrink: 0;
     }
 }
 
