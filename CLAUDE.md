@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Note**: This project uses [bd (beads)](https://github.com/steveyegge/beads) for issue tracking. Use `bd` commands instead of markdown TODOs. See [AGENTS.md](AGENTS.md) for workflow details.
+
 ## Project Overview
 
 Beady is a web UI for the [beads](https://github.com/steveyegge/beads) issue tracker. The goal is to create a "fossil-like" all-in-one experience with a CLI and web interface bundled in a single executable that embeds all assets at build time.
