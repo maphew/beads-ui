@@ -217,20 +217,19 @@
         </article>
     </dialog>
 
+    <script>
+        // Initialize username from server
+        window.beadyServerUsername = "{{.Username}}";
+    </script>
     <script src="/static/app.js"></script>
     <script>
         function showCloseDialog() {
             document.getElementById('close-dialog').showModal();
         }
 
-        // Prompt for username on first visit
+        // Initialize username on page load
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('beady-username')) {
-                const username = prompt('Enter your username for attribution:');
-                if (username) {
-                    localStorage.setItem('beady-username', username);
-                }
-            }
+            initUsername(window.beadyServerUsername);
         });
 
         // HTMX event handlers

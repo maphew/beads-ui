@@ -2,6 +2,25 @@
 
 console.log('Beads UI loaded');
 
+// Username management
+function initUsername(serverUsername) {
+    // Check if username is already stored
+    let username = localStorage.getItem('beady-username');
+
+    // If not stored and server provided one, use it
+    if (!username && serverUsername) {
+        username = serverUsername;
+        try {
+            localStorage.setItem('beady-username', username);
+            console.log('Username initialized from server:', username);
+        } catch (e) {
+            console.warn('Could not save username to localStorage:', e);
+        }
+    }
+
+    return username || 'web-user';
+}
+
 // Theme functionality
 function applyTheme(theme) {
     const html = document.documentElement;
@@ -182,6 +201,9 @@ function initShutdown() {
 
 // View selector functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize username (use server-provided username if available)
+    initUsername(window.beadyServerUsername);
+
     // Initialize theme
     initTheme();
 

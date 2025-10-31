@@ -110,6 +110,8 @@ var devMode bool
 
 var help = flag.Bool("help", false, "Show help")
 
+var detectedUsername string
+
 var srv *http.Server
 
 func printUsage() {
@@ -259,6 +261,10 @@ func main() {
 		flag.Usage()
 		os.Exit(0)
 	}
+
+	// Detect username for attribution
+	detectedUsername = detectUsername()
+	log.Printf("Detected username: %s", detectedUsername)
 
 	// Set filesystem for templates and static files
 	if devMode {
@@ -500,6 +506,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		"Issues":       issuesWithLabels,
 		"Stats":        stats,
 		"ActiveStatus": activeStatus,
+		"Username":     detectedUsername,
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -540,6 +547,7 @@ func handleIssueDetail(w http.ResponseWriter, r *http.Request) {
 		"Labels":     labels,
 		"Events":     events,
 		"HasDeps":    len(deps) > 0 || len(dependents) > 0,
+		"Username":   detectedUsername,
 	}
 
 	if err := tmplAll.ExecuteTemplate(w, "detail.html", data); err != nil {
@@ -572,6 +580,7 @@ func handleGraph(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
 		"Issue":    issue,
 		"DotGraph": dotGraph,
+		"Username": detectedUsername,
 	}
 
 	if err := tmplAll.ExecuteTemplate(w, "graph.html", data); err != nil {
@@ -622,6 +631,7 @@ func handleReady(w http.ResponseWriter, r *http.Request) {
 		"Issues":       issuesWithLabels,
 		"Stats":        stats,
 		"ExcludeLabel": excludeLabel,
+		"Username":     detectedUsername,
 	}
 
 	if err := tmplAll.ExecuteTemplate(w, "ready.html", data); err != nil {
@@ -647,8 +657,9 @@ func handleBlocked(w http.ResponseWriter, r *http.Request) {
 	stats, _ := store.GetStatistics(ctx)
 
 	data := map[string]interface{}{
-		"Blocked": blocked,
-		"Stats":   stats,
+		"Blocked":  blocked,
+		"Stats":    stats,
+		"Username": detectedUsername,
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -664,8 +675,12 @@ func handleNewIssue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data := map[string]interface{}{
+		"Username": detectedUsername,
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmplAll.ExecuteTemplate(w, "issue_form.html", nil); err != nil {
+	if err := tmplAll.ExecuteTemplate(w, "issue_form.html", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -887,6 +902,30 @@ func openBrowser(url string) error {
 		cmd = exec.Command("xdg-open", url)
 	}
 	return cmd.Start()
+}
+
+// detectUsername attempts to determine the current user's name from various sources.
+// It tries in order: git user.name, environment variables (USER, USERNAME, LOGNAME),
+// and falls back to "web-user" if nothing is found.
+func detectUsername() string {
+	// Try git config user.name first
+	cmd := exec.Command("git", "config", "--global", "user.name")
+	if output, err := cmd.Output(); err == nil {
+		name := strings.TrimSpace(string(output))
+		if name != "" {
+			return name
+		}
+	}
+
+	// Try environment variables
+	for _, envVar := range []string{"USER", "USERNAME", "LOGNAME"} {
+		if name := os.Getenv(envVar); name != "" {
+			return name
+		}
+	}
+
+	// Fallback
+	return "web-user"
 }
 
 // handleAPIShutdown handles graceful shutdown requests from the web UI.
