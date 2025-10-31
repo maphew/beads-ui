@@ -15,7 +15,9 @@
       "Bash(bd close:*)",
       "Bash(git add:*)",
       "Bash(go doc:*)",
-      "Bash(bd:*)"
+      "Bash(bd:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []
