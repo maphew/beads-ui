@@ -160,3 +160,123 @@ build.go                 # Custom build tool with branch naming
 7. **Static file fallback**: `handleStatic` tries `static/` first, then falls back to `templates/` for backwards compatibility.
 
 8. **Content-Type headers**: Explicitly set for CSS (`text/css`) and JS (`application/javascript`) files to avoid browser issues.
+
+## Write Operations
+
+Beady now supports modifying issues through the web UI by executing `bd` CLI commands. This ensures guaranteed compatibility with the CLI and inherits all validation/business logic.
+
+### BD Command Execution Pattern
+
+All write operations are implemented in `cmd/beady/bd_commands.go`:
+
+- `executeBDCommand(args ...string)` - Executes bd commands, returns output
+- `executeBDCommandJSON(args ...string)` - Executes with --json flag, parses response
+- Searches for `bd` binary in PATH or alongside beady executable
+- Returns structured errors with command output on failure
+
+### Write API Endpoints
+
+All write endpoints require POST or DELETE methods and return JSON:
+
+1. **POST /api/issues/create** - Create new issue (bd create)
+   - Body: `CreateIssueRequest` with title, type, priority, description, labels, etc.
+   - Returns: JSON issue object from bd
+
+2. **POST /api/issue/status/{id}** - Update status (bd update -s)
+   - Body: `{"status": "open|in_progress|closed", "username": "user"}`
+   - Returns: JSON issue object
+
+3. **POST /api/issue/priority/{id}** - Update priority (bd update -p)
+   - Body: `{"priority": 0-4, "username": "user"}`
+   - Returns: JSON issue object
+
+4. **POST /api/issue/close/{id}** - Close issue (bd close)
+   - Body: `{"reason": "optional reason", "username": "user"}`
+   - Returns: `{"success": true, "message": "...", "issue_id": "..."}`
+
+5. **POST /api/issue/comments/{id}** - Add comment (bd comments add)
+   - Body: `{"text": "comment text", "username": "user"}`
+   - Returns: JSON comment object
+
+6. **POST /api/issue/notes/{id}** - Update notes (bd update --notes)
+   - Body: `{"notes": "note text", "username": "user"}`
+   - Returns: JSON issue object
+
+7. **POST /api/issue/labels/{id}** - Add labels (bd label add)
+   - Body: `{"labels": ["label1", "label2"], "username": "user"}`
+   - Returns: `{"success": true, "labels": [...]}`
+
+8. **DELETE /api/issue/labels/{id}/{label}** - Remove label (bd label remove)
+   - Returns: `{"success": true, "message": "..."}`
+
+9. **POST /api/issue/dependencies/{id}** - Add dependency (bd dep add)
+   - Body: `{"dependency_type": "blocks|depends-on|...", "target_id": "issue-123", "username": "user"}`
+   - Returns: `{"success": true, "dependency": "..."}`
+
+10. **DELETE /api/issue/dependencies/{id}/{depType}:{depId}** - Remove dependency (bd dep remove)
+    - Returns: `{"success": true, "message": "..."}`
+
+### User Attribution
+
+- All write operations accept a `username` field in request body
+- Username is stored in browser localStorage (`beady-username`)
+- Prompted on first visit via JavaScript
+- Passed to bd commands via appropriate flags (-a/--assignee where supported)
+- Represents the user operating the browser, not the server process
+
+### HTMX Integration
+
+Write operations use [HTMX](https://htmx.org/) for dynamic updates:
+
+- HTMX script loaded from CDN in templates
+- Forms use `hx-post`, `hx-delete` attributes for AJAX requests
+- `hx-vals='js:{...}'` passes JavaScript-computed values (e.g., from localStorage)
+- `hx-on::after-request` handles success/error responses
+- Most operations reload page after success for simplicity
+- Progressive enhancement: forms work without JavaScript (with full page reload)
+
+### UI Components
+
+**Issue Detail Page** ([detail.html](assets/beady/templates/detail.html)):
+- Status/Priority dropdowns with inline update
+- Close button with modal dialog for reason
+- Comment form that reloads page on submit
+- Label add/remove with inline controls
+- Notes section with edit form in collapsible details
+- All actions include username from localStorage
+
+**Issue Creation** ([issue_form.html](assets/beady/templates/issue_form.html)):
+- Accessible via "New Issue" button on home page
+- Full form with title, type, priority, description, design, acceptance, labels
+- Redirects to new issue detail page on success
+- Route: `/issue/new` handled by `handleNewIssue`
+
+### Error Handling
+
+- All handlers validate HTTP method first (return 405 for wrong method)
+- Required fields validated before bd command execution (return 400)
+- BD command errors logged and returned as 500 with error message
+- HTMX displays errors via alert() (can be enhanced with toast notifications)
+- Console logs successful requests for debugging
+
+### Security Considerations
+
+- **Local-only**: Server binds to 127.0.0.1, no network access
+- **No authentication**: Username is for attribution only, not security
+- **Input validation**: Basic validation on required fields
+- **Command injection**: Arguments passed safely to exec.Command (no shell parsing)
+- **Future**: Add CSRF protection, rate limiting if network-accessible
+
+### Testing Write Operations
+
+Manual testing checklist:
+1. Ensure `bd` binary is in PATH or same directory as beady
+2. Start beady with test database: `beady test.db 8080`
+3. Test status update: change dropdown, verify database updated
+4. Test priority update: change dropdown, verify updated
+5. Test close: click Close button, enter reason, verify closed
+6. Test comment: add comment, verify appears in list
+7. Test labels: add/remove labels, verify updated
+8. Test notes: edit notes, save, verify updated
+9. Test create: click New Issue, fill form, submit, verify created
+10. Check bd audit log for all operations: `bd log {issue-id}`

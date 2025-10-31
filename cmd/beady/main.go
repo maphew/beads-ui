@@ -324,12 +324,24 @@ func main() {
 	mux.HandleFunc("/", handleIndex)
 	mux.HandleFunc("/ready", handleReady)
 	mux.HandleFunc("/blocked", handleBlocked)
+	mux.HandleFunc("/issue/new", handleNewIssue)
 	mux.HandleFunc("/issue/", handleIssueDetail)
 	mux.HandleFunc("/graph/", handleGraph)
 	mux.HandleFunc("/api/issues", handleAPIIssues)
 	mux.HandleFunc("/api/issue/", handleAPIIssue)
 	mux.HandleFunc("/api/stats", handleAPIStats)
 	mux.HandleFunc("/api/shutdown", handleAPIShutdown)
+
+	// Write operation endpoints
+	mux.HandleFunc("/api/issues/create", handleAPICreateIssue)
+	mux.HandleFunc("/api/issue/status/", handleAPIUpdateStatus)
+	mux.HandleFunc("/api/issue/priority/", handleAPIUpdatePriority)
+	mux.HandleFunc("/api/issue/close/", handleAPICloseIssue)
+	mux.HandleFunc("/api/issue/comments/", handleAPIAddComment)
+	mux.HandleFunc("/api/issue/notes/", handleAPIUpdateNotes)
+	mux.HandleFunc("/api/issue/labels/", handleAPILabels)
+	mux.HandleFunc("/api/issue/dependencies/", handleAPIDependencies)
+
 	if devMode {
 		mux.HandleFunc("/ws", handleWS)
 	}
@@ -645,6 +657,19 @@ func handleBlocked(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handleNewIssue displays the issue creation form.
+func handleNewIssue(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := tmplAll.ExecuteTemplate(w, "issue_form.html", nil); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func handleAPIIssues(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -919,4 +944,401 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", contentType)
 	w.Write(content)
+}
+
+// handleAPICreateIssue handles POST requests to create a new issue via bd CLI.
+func handleAPICreateIssue(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req CreateIssueRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate required fields
+	if req.Title == "" {
+		http.Error(w, "Title is required", http.StatusBadRequest)
+		return
+	}
+
+	// Build bd create command
+	args := []string{"create", req.Title}
+
+	if req.Type != "" {
+		args = append(args, "-t", req.Type)
+	}
+	if req.Priority > 0 {
+		args = append(args, "-p", strconv.Itoa(req.Priority))
+	}
+	if req.Description != "" {
+		args = append(args, "-d", req.Description)
+	}
+	if req.Design != "" {
+		args = append(args, "--design", req.Design)
+	}
+	if req.Acceptance != "" {
+		args = append(args, "--acceptance", req.Acceptance)
+	}
+	if req.Assignee != "" {
+		args = append(args, "-a", req.Assignee)
+	} else if req.Username != "" {
+		args = append(args, "-a", req.Username)
+	}
+	if len(req.Labels) > 0 {
+		args = append(args, "-l", strings.Join(req.Labels, ","))
+	}
+
+	// Execute bd create command
+	output, err := executeBDCommandJSON(args...)
+	if err != nil {
+		log.Printf("Error creating issue: %v", err)
+		http.Error(w, fmt.Sprintf("Failed to create issue: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(*output)
+}
+
+// handleAPIUpdateStatus handles POST requests to update an issue's status.
+func handleAPIUpdateStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Extract issue ID from path
+	issueID := strings.TrimPrefix(r.URL.Path, "/api/issue/status/")
+	if issueID == "" {
+		http.Error(w, "Issue ID is required", http.StatusBadRequest)
+		return
+	}
+
+	var req UpdateStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Status == "" {
+		http.Error(w, "Status is required", http.StatusBadRequest)
+		return
+	}
+
+	// Execute bd update command
+	args := []string{"update", issueID, "-s", req.Status}
+	if req.Username != "" {
+		args = append(args, "-a", req.Username)
+	}
+
+	output, err := executeBDCommandJSON(args...)
+	if err != nil {
+		log.Printf("Error updating status: %v", err)
+		http.Error(w, fmt.Sprintf("Failed to update status: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(*output)
+}
+
+// handleAPIUpdatePriority handles POST requests to update an issue's priority.
+func handleAPIUpdatePriority(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	issueID := strings.TrimPrefix(r.URL.Path, "/api/issue/priority/")
+	if issueID == "" {
+		http.Error(w, "Issue ID is required", http.StatusBadRequest)
+		return
+	}
+
+	var req UpdatePriorityRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Execute bd update command
+	args := []string{"update", issueID, "-p", strconv.Itoa(req.Priority)}
+	if req.Username != "" {
+		args = append(args, "-a", req.Username)
+	}
+
+	output, err := executeBDCommandJSON(args...)
+	if err != nil {
+		log.Printf("Error updating priority: %v", err)
+		http.Error(w, fmt.Sprintf("Failed to update priority: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(*output)
+}
+
+// handleAPICloseIssue handles POST requests to close an issue.
+func handleAPICloseIssue(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	issueID := strings.TrimPrefix(r.URL.Path, "/api/issue/close/")
+	if issueID == "" {
+		http.Error(w, "Issue ID is required", http.StatusBadRequest)
+		return
+	}
+
+	var req CloseIssueRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Execute bd close command
+	args := []string{"close", issueID}
+	if req.Reason != "" {
+		args = append(args, "-r", req.Reason)
+	}
+
+	output, err := executeBDCommand(args...)
+	if err != nil {
+		log.Printf("Error closing issue: %v", err)
+		http.Error(w, fmt.Sprintf("Failed to close issue: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// bd close doesn't return JSON, so wrap the response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": string(output),
+		"issue_id": issueID,
+	})
+}
+
+// handleAPIAddComment handles POST requests to add a comment to an issue.
+func handleAPIAddComment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	issueID := strings.TrimPrefix(r.URL.Path, "/api/issue/comments/")
+	if issueID == "" {
+		http.Error(w, "Issue ID is required", http.StatusBadRequest)
+		return
+	}
+
+	var req AddCommentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Text == "" {
+		http.Error(w, "Comment text is required", http.StatusBadRequest)
+		return
+	}
+
+	// Execute bd comments add command
+	args := []string{"comments", "add", issueID, req.Text}
+	output, err := executeBDCommandJSON(args...)
+	if err != nil {
+		log.Printf("Error adding comment: %v", err)
+		http.Error(w, fmt.Sprintf("Failed to add comment: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(*output)
+}
+
+// handleAPIUpdateNotes handles POST requests to update an issue's notes.
+func handleAPIUpdateNotes(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	issueID := strings.TrimPrefix(r.URL.Path, "/api/issue/notes/")
+	if issueID == "" {
+		http.Error(w, "Issue ID is required", http.StatusBadRequest)
+		return
+	}
+
+	var req UpdateNotesRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Execute bd update command
+	args := []string{"update", issueID, "--notes", req.Notes}
+	if req.Username != "" {
+		args = append(args, "-a", req.Username)
+	}
+
+	output, err := executeBDCommandJSON(args...)
+	if err != nil {
+		log.Printf("Error updating notes: %v", err)
+		http.Error(w, fmt.Sprintf("Failed to update notes: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(*output)
+}
+
+// handleAPILabels handles both POST (add) and DELETE (remove) requests for issue labels.
+func handleAPILabels(w http.ResponseWriter, r *http.Request) {
+	issueID := strings.TrimPrefix(r.URL.Path, "/api/issue/labels/")
+
+	// Handle DELETE - remove label
+	if r.Method == http.MethodDelete {
+		// Extract label from path: /api/issue/labels/{issueID}/{label}
+		parts := strings.SplitN(issueID, "/", 2)
+		if len(parts) != 2 {
+			http.Error(w, "Invalid path format", http.StatusBadRequest)
+			return
+		}
+		issueID = parts[0]
+		label := parts[1]
+
+		// Execute bd label remove command
+		args := []string{"label", "remove", issueID, label}
+		output, err := executeBDCommand(args...)
+		if err != nil {
+			log.Printf("Error removing label: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to remove label: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"message": string(output),
+		})
+		return
+	}
+
+	// Handle POST - add labels
+	if r.Method == http.MethodPost {
+		if issueID == "" {
+			http.Error(w, "Issue ID is required", http.StatusBadRequest)
+			return
+		}
+
+		var req AddLabelsRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		if len(req.Labels) == 0 {
+			http.Error(w, "At least one label is required", http.StatusBadRequest)
+			return
+		}
+
+		// Execute bd label add command
+		args := []string{"label", "add", issueID}
+		args = append(args, req.Labels...)
+
+		output, err := executeBDCommand(args...)
+		if err != nil {
+			log.Printf("Error adding labels: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to add labels: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"message": string(output),
+			"labels": req.Labels,
+		})
+		return
+	}
+
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+}
+
+// handleAPIDependencies handles both POST (add) and DELETE (remove) requests for issue dependencies.
+func handleAPIDependencies(w http.ResponseWriter, r *http.Request) {
+	issueID := strings.TrimPrefix(r.URL.Path, "/api/issue/dependencies/")
+
+	// Handle DELETE - remove dependency
+	if r.Method == http.MethodDelete {
+		// Extract dependency ID from path: /api/issue/dependencies/{issueID}/{depType}:{depID}
+		parts := strings.SplitN(issueID, "/", 2)
+		if len(parts) != 2 {
+			http.Error(w, "Invalid path format", http.StatusBadRequest)
+			return
+		}
+		issueID = parts[0]
+		depSpec := parts[1] // Format: "blocks:issue-123" or "depends-on:issue-456"
+
+		// Execute bd dep remove command
+		args := []string{"dep", "remove", issueID, depSpec}
+		output, err := executeBDCommand(args...)
+		if err != nil {
+			log.Printf("Error removing dependency: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to remove dependency: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"message": string(output),
+		})
+		return
+	}
+
+	// Handle POST - add dependency
+	if r.Method == http.MethodPost {
+		if issueID == "" {
+			http.Error(w, "Issue ID is required", http.StatusBadRequest)
+			return
+		}
+
+		var req AddDependencyRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		if req.DependencyType == "" || req.TargetID == "" {
+			http.Error(w, "Dependency type and target ID are required", http.StatusBadRequest)
+			return
+		}
+
+		// Build dependency spec: "blocks:issue-123"
+		depSpec := fmt.Sprintf("%s:%s", req.DependencyType, req.TargetID)
+
+		// Execute bd dep add command
+		args := []string{"dep", "add", issueID, depSpec}
+		output, err := executeBDCommand(args...)
+		if err != nil {
+			log.Printf("Error adding dependency: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to add dependency: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": true,
+			"message": string(output),
+			"dependency": depSpec,
+		})
+		return
+	}
+
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }

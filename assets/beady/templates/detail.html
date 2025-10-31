@@ -7,6 +7,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📿</text></svg>">
     <link rel="stylesheet" href="/static/pico.pumpkin.css">
     <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
     <header>
@@ -33,8 +34,45 @@
             <header>
                 <h1>{{.Issue.ID}}: {{.Issue.Title}}</h1>
             </header>
-            <p><strong>Status:</strong> <span class="status-{{.Issue.Status | lower}}">{{.Issue.Status}}</span></p>
-            <p><strong>Priority:</strong> {{.Issue.Priority}}</p>
+
+            <!-- Quick Actions -->
+            <div class="issue-actions grid">
+                <div>
+                    <label for="status-select">Status:</label>
+                    <select id="status-select"
+                            hx-post="/api/issue/status/{{.Issue.ID}}"
+                            hx-trigger="change"
+                            hx-vals='js:{"status": event.target.value, "username": localStorage.getItem("beady-username") || ""}'
+                            hx-swap="none">
+                        <option value="open" {{if eq (.Issue.Status | lower) "open"}}selected{{end}}>Open</option>
+                        <option value="in_progress" {{if eq (.Issue.Status | lower) "in_progress"}}selected{{end}}>In Progress</option>
+                        <option value="closed" {{if eq (.Issue.Status | lower) "closed"}}selected{{end}}>Closed</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="priority-select">Priority:</label>
+                    <select id="priority-select"
+                            hx-post="/api/issue/priority/{{.Issue.ID}}"
+                            hx-trigger="change"
+                            hx-vals='js:{"priority": parseInt(event.target.value), "username": localStorage.getItem("beady-username") || ""}'
+                            hx-swap="none">
+                        <option value="0" {{if eq .Issue.Priority 0}}selected{{end}}>P0</option>
+                        <option value="1" {{if eq .Issue.Priority 1}}selected{{end}}>P1</option>
+                        <option value="2" {{if eq .Issue.Priority 2}}selected{{end}}>P2</option>
+                        <option value="3" {{if eq .Issue.Priority 3}}selected{{end}}>P3</option>
+                        <option value="4" {{if eq .Issue.Priority 4}}selected{{end}}>P4</option>
+                    </select>
+                </div>
+
+                {{if ne (.Issue.Status | lower) "closed"}}
+                <div>
+                    <label>&nbsp;</label>
+                    <button onclick="showCloseDialog()" class="secondary">Close Issue</button>
+                </div>
+                {{end}}
+            </div>
+
             <p><strong>Type:</strong> {{.Issue.IssueType}}</p>
             <p><strong>Created:</strong> {{.Issue.CreatedAt}}</p>
             <p><strong>Updated:</strong> {{.Issue.UpdatedAt}}</p>
@@ -50,10 +88,22 @@
             <div><strong>Acceptance Criteria:</strong></div>
             <p style="white-space: pre-wrap;">{{.Issue.AcceptanceCriteria}}</p>
             {{end}}
-            {{if .Issue.Notes}}
-            <div><strong>Notes:</strong></div>
-            <p style="white-space: pre-wrap;">{{.Issue.Notes}}</p>
-            {{end}}
+            <details>
+                <summary><strong>Notes</strong></summary>
+                <div id="notes-section">
+                    {{if .Issue.Notes}}
+                    <p style="white-space: pre-wrap;">{{.Issue.Notes}}</p>
+                    {{else}}
+                    <p><em>No notes yet.</em></p>
+                    {{end}}
+                </div>
+                <form hx-post="/api/issue/notes/{{.Issue.ID}}"
+                      hx-vals='js:{"notes": document.querySelector("#notes-text").value, "username": localStorage.getItem("beady-username") || ""}'
+                      hx-on::after-request="if(event.detail.successful) { window.location.reload(); }">
+                    <textarea id="notes-text" name="notes" placeholder="Add or update notes..." rows="4">{{.Issue.Notes}}</textarea>
+                    <button type="submit">Save Notes</button>
+                </form>
+            </details>
         </article>
 
         {{if .HasDeps}}
@@ -85,28 +135,51 @@
 
         <section>
             <h3>Labels</h3>
-            <div>
+            <div id="labels-container" class="labels-container">
                 {{range .Labels}}
-                <span class="label">{{.}}</span>
+                <span class="label">
+                    {{.}}
+                    <button class="label-remove"
+                            hx-delete="/api/issue/labels/{{$.Issue.ID}}/{{.}}"
+                            hx-target="#labels-container"
+                            hx-swap="outerHTML"
+                            aria-label="Remove label">×</button>
+                </span>
                 {{end}}
+                {{if not .Labels}}<p>No labels.</p>{{end}}
             </div>
-            {{if not .Labels}}<p>No labels.</p>{{end}}
+            <form hx-post="/api/issue/labels/{{.Issue.ID}}"
+                  hx-target="#labels-container"
+                  hx-swap="outerHTML"
+                  class="label-form">
+                <input type="text" name="label" placeholder="Add label..." required>
+                <button type="submit">Add Label</button>
+            </form>
         </section>
 
         <section>
             <h3>Comments</h3>
-            {{if .Issue.Comments}}
-            <ul>
-                {{range .Issue.Comments}}
-                <li>
-                    <strong>{{.CreatedAt}}</strong>{{if .CreatedBy}} by {{.CreatedBy}}{{end}}
-                    <p style="white-space: pre-wrap;">{{.Text}}</p>
-                </li>
+            <div id="comments-list">
+                {{if .Issue.Comments}}
+                <ul>
+                    {{range .Issue.Comments}}
+                    <li>
+                        <strong>{{.CreatedAt}}</strong>{{if .CreatedBy}} by {{.CreatedBy}}{{end}}
+                        <p style="white-space: pre-wrap;">{{.Text}}</p>
+                    </li>
+                    {{end}}
+                </ul>
+                {{else}}
+                <p>No comments.</p>
                 {{end}}
-            </ul>
-            {{else}}
-            <p>No comments.</p>
-            {{end}}
+            </div>
+            <form hx-post="/api/issue/comments/{{.Issue.ID}}"
+                  hx-vals='js:{"text": document.querySelector("#comment-text").value, "username": localStorage.getItem("beady-username") || ""}'
+                  hx-on::after-request="if(event.detail.successful) { document.querySelector('#comment-text').value = ''; window.location.reload(); }"
+                  class="comment-form">
+                <textarea id="comment-text" name="text" placeholder="Add a comment..." rows="3" required></textarea>
+                <button type="submit">Add Comment</button>
+            </form>
         </section>
 
         <section>
@@ -124,6 +197,52 @@
         </div>
     </main>
 
+    <!-- Close Issue Dialog -->
+    <dialog id="close-dialog">
+        <article>
+            <header>
+                <button aria-label="Close" rel="prev" onclick="document.getElementById('close-dialog').close()"></button>
+                <h3>Close Issue</h3>
+            </header>
+            <form hx-post="/api/issue/close/{{.Issue.ID}}"
+                  hx-vals='js:{"reason": document.querySelector("#close-reason").value, "username": localStorage.getItem("beady-username") || ""}'
+                  hx-on::after-request="if(event.detail.successful) { window.location.reload(); }">
+                <label for="close-reason">Reason for closing (optional):</label>
+                <input type="text" id="close-reason" name="reason" placeholder="e.g., completed, duplicate, won't fix">
+                <footer>
+                    <button type="button" class="secondary" onclick="document.getElementById('close-dialog').close()">Cancel</button>
+                    <button type="submit">Close Issue</button>
+                </footer>
+            </form>
+        </article>
+    </dialog>
+
     <script src="/static/app.js"></script>
+    <script>
+        function showCloseDialog() {
+            document.getElementById('close-dialog').showModal();
+        }
+
+        // Prompt for username on first visit
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('beady-username')) {
+                const username = prompt('Enter your username for attribution:');
+                if (username) {
+                    localStorage.setItem('beady-username', username);
+                }
+            }
+        });
+
+        // HTMX event handlers
+        document.body.addEventListener('htmx:afterRequest', function(event) {
+            if (event.detail.successful) {
+                // Show success message
+                console.log('Request successful');
+            } else {
+                // Show error message
+                alert('Error: ' + (event.detail.xhr.responseText || 'Request failed'));
+            }
+        });
+    </script>
 </body>
 </html>

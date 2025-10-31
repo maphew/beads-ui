@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Issue - Beady</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📿</text></svg>">
+    <link rel="stylesheet" href="/static/pico.pumpkin.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <nav aria-label="breadcrumb">
+                <ol>
+                    <li><a href="/">Home</a></li>
+                    <li>Create Issue</li>
+                </ol>
+            </nav>
+            <div class="theme-control">
+                <label for="theme-select">Theme:</label>
+                <select id="theme-select" aria-label="Select theme">
+                    <option value="auto">Auto</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <article class="card">
+            <header>
+                <h1>Create New Issue</h1>
+            </header>
+
+            <form id="create-issue-form"
+                  hx-post="/api/issues/create"
+                  hx-vals='js:{
+                      "title": document.querySelector("#title").value,
+                      "description": document.querySelector("#description").value,
+                      "type": document.querySelector("#type").value,
+                      "priority": parseInt(document.querySelector("#priority").value),
+                      "labels": document.querySelector("#labels").value.split(",").map(s => s.trim()).filter(s => s),
+                      "design": document.querySelector("#design").value,
+                      "acceptance": document.querySelector("#acceptance").value,
+                      "username": localStorage.getItem("beady-username") || ""
+                  }'
+                  hx-on::after-request="if(event.detail.successful) {
+                      const response = JSON.parse(event.detail.xhr.responseText);
+                      window.location.href = '/issue/' + response.id;
+                  }">
+
+                <label for="title">
+                    Title <span class="required">*</span>
+                    <input type="text" id="title" name="title" placeholder="Brief description of the issue" required>
+                </label>
+
+                <div class="grid">
+                    <label for="type">
+                        Type
+                        <select id="type" name="type">
+                            <option value="task">Task</option>
+                            <option value="bug">Bug</option>
+                            <option value="feature">Feature</option>
+                            <option value="epic">Epic</option>
+                            <option value="spike">Spike</option>
+                        </select>
+                    </label>
+
+                    <label for="priority">
+                        Priority
+                        <select id="priority" name="priority">
+                            <option value="2" selected>P2 (Default)</option>
+                            <option value="0">P0 (Critical)</option>
+                            <option value="1">P1 (High)</option>
+                            <option value="3">P3 (Low)</option>
+                            <option value="4">P4 (Very Low)</option>
+                        </select>
+                    </label>
+                </div>
+
+                <label for="description">
+                    Description
+                    <textarea id="description" name="description" placeholder="Detailed description of the issue" rows="4"></textarea>
+                </label>
+
+                <label for="design">
+                    Design Notes
+                    <textarea id="design" name="design" placeholder="Design considerations and approach" rows="3"></textarea>
+                </label>
+
+                <label for="acceptance">
+                    Acceptance Criteria
+                    <textarea id="acceptance" name="acceptance" placeholder="What needs to be done for this to be considered complete" rows="3"></textarea>
+                </label>
+
+                <label for="labels">
+                    Labels
+                    <input type="text" id="labels" name="labels" placeholder="Comma-separated labels (e.g., frontend, urgent, refactor)">
+                    <small>Separate multiple labels with commas</small>
+                </label>
+
+                <div class="grid">
+                    <button type="button" class="secondary" onclick="window.location.href='/'">Cancel</button>
+                    <button type="submit">Create Issue</button>
+                </div>
+            </form>
+        </article>
+    </main>
+
+    <script src="/static/app.js"></script>
+    <script>
+        // Prompt for username on first visit
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('beady-username')) {
+                const username = prompt('Enter your username for attribution:');
+                if (username) {
+                    localStorage.setItem('beady-username', username);
+                }
+            }
+        });
+
+        // HTMX error handling
+        document.body.addEventListener('htmx:afterRequest', function(event) {
+            if (!event.detail.successful) {
+                alert('Error creating issue: ' + (event.detail.xhr.responseText || 'Request failed'));
+            }
+        });
+    </script>
+</body>
+</html>

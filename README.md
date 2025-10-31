@@ -18,6 +18,7 @@ _--> Also see [mantoni/beads-ui](https://github.com/mantoni/beads-ui from @manto
 
 ## Features
 
+### Read Operations
 - **Issue list** with real-time filtering (search, status, priority)
 - **Issue detail** pages with dependencies and activity
 - **Dependency graphs** visualized with Graphviz
@@ -27,12 +28,27 @@ _--> Also see [mantoni/beads-ui](https://github.com/mantoni/beads-ui from @manto
 - **Theme customization** with light/dark/auto modes and persistent preferences
 - **Graceful shutdown** via UI button (no need for task manager or kill commands)
 
+### Write Operations (NEW!)
+Beady now supports creating and modifying issues through the web UI:
+
+- **Create new issues** with full form (title, type, priority, description, design, acceptance, labels)
+- **Update status** via inline dropdown (open, in progress, closed)
+- **Change priority** via inline dropdown (P0-P4)
+- **Close issues** with optional reason
+- **Add comments** with username attribution
+- **Edit notes** with collapsible form
+- **Manage labels** - add/remove labels inline
+- **Manage dependencies** - add/remove blockers and dependencies
+
+All write operations are performed by executing the `bd` CLI, ensuring guaranteed compatibility with the CLI and inheriting all validation logic. For bulk operations, use the `bd` CLI directly.
+
 ## Installation
 
 ### Prerequisites
 
 - Go 1.21 or later
 - A beads database file
+- **bd CLI** in PATH (required for write operations) - install from [github.com/steveyegge/beads](https://github.com/steveyegge/beads)
 
 ### Quick install from Git
 
@@ -149,10 +165,26 @@ Beady provides the following HTTP endpoints:
 - `GET /graph/{id}` - Dependency graph visualization
 
 #### API (JSON)
+
+**Read Endpoints:**
 - `GET /api/issues` - List all issues (supports `?search=`, `?status=`, `?priority=` filters)
 - `GET /api/issue/{id}` - Get single issue details
 - `GET /api/stats` - Get statistics (total, open, in-progress, closed counts)
 - `POST /api/shutdown` - Gracefully shutdown the server
+
+**Write Endpoints** (require bd CLI in PATH):
+- `POST /api/issues/create` - Create new issue
+- `POST /api/issue/status/{id}` - Update issue status
+- `POST /api/issue/priority/{id}` - Update issue priority
+- `POST /api/issue/close/{id}` - Close issue with reason
+- `POST /api/issue/comments/{id}` - Add comment
+- `POST /api/issue/notes/{id}` - Update notes
+- `POST /api/issue/labels/{id}` - Add labels
+- `DELETE /api/issue/labels/{id}/{label}` - Remove label
+- `POST /api/issue/dependencies/{id}` - Add dependency
+- `DELETE /api/issue/dependencies/{id}/{depSpec}` - Remove dependency
+
+All write endpoints accept JSON request bodies with a `username` field for attribution. See [CLAUDE.md](CLAUDE.md) for detailed API documentation.
 
 #### Static Assets
 - `GET /static/*` - CSS, JavaScript, and other static files
