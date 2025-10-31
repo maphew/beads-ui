@@ -46,27 +46,36 @@ All write operations are performed by executing the `bd` CLI, ensuring guarantee
 
 ### Prerequisites
 
-- Go 1.21 or later
-- A beads database file
 - **bd CLI** in PATH (required for write operations) - install from [github.com/steveyegge/beads](https://github.com/steveyegge/beads)
+- A beads database file (will be auto-discovered from `.beads/` directory)
 
-### Quick install from Git
+### Download Pre-built Binaries (Recommended)
+
+Download the latest release for your platform from [GitHub Releases](https://github.com/maphew/beady/releases):
+
+- **Windows**: `beady_VERSION_Windows_x86_64.zip` (or `i386` for 32-bit)
+- **macOS**: `beady_VERSION_Darwin_x86_64.tar.gz` (or `arm64` for Apple Silicon)
+- **Linux**: `beady_VERSION_Linux_x86_64.tar.gz` (or `arm64`, `i386`)
+
+Extract the binary and add it to your PATH.
+
+### Install via Go
 
 Install the latest release:
 
 ```bash
-go install github.com/maphew/beads-ui/cmd/beady@latest
+go install github.com/maphew/beady/cmd/beady@latest
 ```
 
-Or install the latest development version from main branch:
+Or install a specific version:
 
 ```bash
-go install github.com/maphew/beads-ui/cmd/beady@main
+go install github.com/maphew/beady/cmd/beady@v1.0.0
 ```
 
 This will install the `beady` binary to your `$GOPATH/bin` (usually `~/go/bin`).
 
-### Building from source
+### Building from Source
 
 1. Clone this repository:
 ```bash
@@ -194,11 +203,27 @@ All write endpoints accept JSON request bodies with a `username` field for attri
 
 ### Releasing
 
-This project follows semantic versioning. To release a new version:
+This project uses [GoReleaser](https://goreleaser.com/) with GitHub Actions for automated releases. To create a new release:
 
-1. Update the version in any relevant files (if needed)
-2. Create and push a git tag with the version (e.g., `git tag v1.0.0 && git push origin v1.0.0`)
-3. This will make the version available via `go install ...@latest`
+1. Ensure all changes are committed and pushed to `main` branch
+2. Create and push a version tag following semantic versioning:
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+3. GitHub Actions will automatically:
+   - Build binaries for all platforms (Linux, Windows, macOS)
+   - Generate checksums
+   - Create a GitHub release with all artifacts
+   - Make the version available via `go install ...@latest`
+
+The release will include:
+- Multi-platform binaries (amd64, arm64, 386)
+- Archives (`.tar.gz` for Unix, `.zip` for Windows)
+- Checksums for verification
+- Automated changelog from commits
+
+**Testing a release**: To test the release process without creating an official release, push a tag with a `-test` suffix (e.g., `v0.0.1-test`).
 
 ## Dependencies
 
