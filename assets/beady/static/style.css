@@ -1,6 +1,8 @@
 /* Pico CSS overrides */
 
 :root {
+    --pico-font-size: 87.5%;  /* Makes base font smaller (14px) */
+    --pico-font-size-base: 14px; /* Base font size for rem calculations */
     --pico-primary: hsl(210, 100%, 40%);
     --pico-primary-background: hsl(210, 100%, 95%);
     --pico-primary-border: hsl(210, 100%, 85%);
