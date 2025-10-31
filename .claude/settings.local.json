@@ -24,7 +24,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git pull:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(.binbeady.exe --dev)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []
