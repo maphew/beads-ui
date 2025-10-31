@@ -95,6 +95,61 @@ function initFilters() {
     });
 }
 
+// Server connection monitoring
+let connectionCheckInterval = null;
+let serverOnline = true;
+
+function checkServerConnection() {
+    fetch('/api/stats', {
+        method: 'GET',
+        cache: 'no-cache'
+    })
+    .then(response => {
+        if (response.ok) {
+            updateConnectionStatus(true);
+        } else {
+            updateConnectionStatus(false);
+        }
+    })
+    .catch(error => {
+        updateConnectionStatus(false);
+    });
+}
+
+function updateConnectionStatus(online) {
+    const shutdownBtn = document.getElementById('shutdown-btn');
+    if (!shutdownBtn) return;
+
+    if (online !== serverOnline) {
+        serverOnline = online;
+        if (online) {
+            shutdownBtn.textContent = 'Shutdown';
+            shutdownBtn.disabled = false;
+            shutdownBtn.classList.remove('contrast');
+            shutdownBtn.classList.add('secondary', 'outline');
+        } else {
+            shutdownBtn.textContent = 'Server Offline';
+            shutdownBtn.disabled = true;
+            shutdownBtn.classList.remove('secondary', 'outline');
+            shutdownBtn.classList.add('contrast');
+        }
+    }
+}
+
+function startConnectionMonitoring() {
+    // Check connection every 3 seconds
+    if (!connectionCheckInterval) {
+        connectionCheckInterval = setInterval(checkServerConnection, 3000);
+    }
+}
+
+function stopConnectionMonitoring() {
+    if (connectionCheckInterval) {
+        clearInterval(connectionCheckInterval);
+        connectionCheckInterval = null;
+    }
+}
+
 // Shutdown functionality
 function initShutdown() {
     const shutdownBtn = document.getElementById('shutdown-btn');
@@ -111,13 +166,18 @@ function initShutdown() {
                 // Show a message to the user
                 shutdownBtn.textContent = 'Shutting down...';
                 shutdownBtn.disabled = true;
+                // Start monitoring connection to detect when server is offline
+                startConnectionMonitoring();
             })
             .catch(error => {
                 console.error('Shutdown error:', error);
-                alert('Error shutting down server');
+                updateConnectionStatus(false);
             });
         }
     });
+
+    // Start connection monitoring on page load
+    startConnectionMonitoring();
 }
 
 // View selector functionality
