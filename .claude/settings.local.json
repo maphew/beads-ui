@@ -17,7 +17,8 @@
       "Bash(go doc:*)",
       "Bash(bd:*)",
       "Bash(netstat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []
