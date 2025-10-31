@@ -478,9 +478,16 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Determine active status filter (empty means all/total)
+	activeStatus := ""
+	if len(statusValues) == 1 {
+		activeStatus = statusValues[0]
+	}
+
 	data := map[string]interface{}{
-		"Issues": issuesWithLabels,
-		"Stats":  stats,
+		"Issues":       issuesWithLabels,
+		"Stats":        stats,
+		"ActiveStatus": activeStatus,
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

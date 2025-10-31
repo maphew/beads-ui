@@ -24,12 +24,24 @@
                 <button id="shutdown-btn" class="secondary outline" aria-label="Shutdown server">Shutdown</button>
             </div>
         </div>
-        <div class="grid">
-            <article class="card"><h3>Total: {{.Stats.TotalIssues}}</h3></article>
-            <article class="card"><h3>Open: {{.Stats.OpenIssues}}</h3></article>
-            <article class="card"><h3>In Progress: {{.Stats.InProgressIssues}}</h3></article>
-            <article class="card"><h3>Closed: {{.Stats.ClosedIssues}}</h3></article>
-        </div>
+        <table class="stats-table" role="grid">
+            <thead>
+                <tr>
+                    <th scope="col">Total</th>
+                    <th scope="col">Open</th>
+                    <th scope="col">In Progress</th>
+                    <th scope="col">Closed</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><a href="/" class="stats-link{{if eq .ActiveStatus ""}} active{{end}}">{{.Stats.TotalIssues}}</a></td>
+                    <td><a href="/?status=open" class="stats-link{{if eq .ActiveStatus "open"}} active{{end}}">{{.Stats.OpenIssues}}</a></td>
+                    <td><a href="/?status=in_progress" class="stats-link{{if eq .ActiveStatus "in_progress"}} active{{end}}">{{.Stats.InProgressIssues}}</a></td>
+                    <td><a href="/?status=closed" class="stats-link{{if eq .ActiveStatus "closed"}} active{{end}}">{{.Stats.ClosedIssues}}</a></td>
+                </tr>
+            </tbody>
+        </table>
         <fieldset id="view-selector" role="group" aria-label="Select view">
             <legend>View:</legend>
             <label>
@@ -51,22 +63,6 @@
         <h2>All Issues</h2>
         <form method="GET" role="search" id="filter-form">
             <input type="search" name="search" id="search-input" placeholder="Search issues..." aria-label="Search issues">
-
-            <fieldset role="group" aria-label="Filter by status">
-                <legend>Status:</legend>
-                <label>
-                    <input type="checkbox" name="status" value="open" id="status-open">
-                    Open
-                </label>
-                <label>
-                    <input type="checkbox" name="status" value="in_progress" id="status-in-progress">
-                    In Progress
-                </label>
-                <label>
-                    <input type="checkbox" name="status" value="closed" id="status-closed">
-                    Closed
-                </label>
-            </fieldset>
 
             <fieldset role="group" aria-label="Filter by priority">
                 <legend>Priority:</legend>

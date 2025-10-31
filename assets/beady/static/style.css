@@ -31,6 +31,50 @@ body {
     background-color: var(--pico-background-color);
 }
 
+/* Stats table */
+.stats-table {
+    margin-bottom: var(--pico-spacing);
+    font-size: 0.9rem;
+}
+
+.stats-table thead th {
+    text-align: center;
+    font-weight: 600;
+    padding: 0.5rem;
+}
+
+.stats-table tbody td {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 0.5rem;
+}
+
+.stats-table .stats-link {
+    text-decoration: none;
+    color: var(--pico-primary);
+    display: block;
+    padding: 0.25rem;
+    border-radius: var(--pico-border-radius);
+    transition: background-color 0.2s ease, font-weight 0.2s ease;
+}
+
+.stats-table .stats-link:hover {
+    background-color: var(--pico-primary-hover-background);
+}
+
+.stats-table .stats-link.active {
+    font-weight: 700;
+    background-color: var(--pico-primary-background);
+    color: var(--pico-primary);
+    border: 2px solid var(--pico-primary);
+}
+
+[data-theme="dark"] .stats-table .stats-link.active {
+    background-color: var(--pico-primary-background);
+    color: var(--pico-primary);
+}
+
 /* Header layout */
 .header-top {
     display: flex;
