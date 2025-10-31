@@ -18,7 +18,13 @@
       "Bash(bd:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(go build:*)",
+      "Bash(dir:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
