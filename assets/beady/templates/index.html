@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beady - a Beads issue tracker UI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📿</text></svg>">
+    <script>
+        // Apply theme immediately to prevent flash
+        (function() {
+            const savedTheme = (typeof localStorage !== 'undefined') ? (localStorage.getItem('beady.theme') || 'auto') : 'auto';
+            if (savedTheme === 'auto') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="/static/pico.pumpkin.css">
     <link rel="stylesheet" href="/static/style.css">
 </head>
