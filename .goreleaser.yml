@@ -1,0 +1,127 @@
+# GoReleaser configuration for beady
+# See https://goreleaser.com for documentation
+
+version: 2
+
+before:
+  hooks:
+    # Ensure dependencies are up to date
+    - go mod tidy
+    # Run tests before building
+    - go test ./...
+
+builds:
+  - id: beady
+    main: ./cmd/beady
+    binary: beady
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+      - "386"
+    # Exclude invalid combinations
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: windows
+        goarch: arm64  # Windows ARM64 support is experimental
+    # Build flags to ensure embedded assets are included
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/maphew/beady/cmd/beady.version={{.Version}}
+      - -X github.com/maphew/beady/cmd/beady.commit={{.Commit}}
+      - -X github.com/maphew/beady/cmd/beady.date={{.Date}}
+
+archives:
+  - id: beady-archive
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - CLAUDE.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: maphew
+    name: beady
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## Beady {{.Tag}}
+
+    A web UI for the [beads](https://github.com/steveyegge/beads) issue tracker.
+
+    ### Installation
+
+    Download the appropriate binary for your platform below, extract it, and add it to your PATH.
+
+    Or install via Go:
+    ```bash
+    go install github.com/maphew/beady/cmd/beady@{{.Tag}}
+    ```
+  footer: |
+    ---
+
+    **Full Changelog**: https://github.com/maphew/beady/compare/{{.PreviousTag}}...{{.Tag}}
+
+    ## What's Next
+
+    See the [beady issue tracker](https://github.com/maphew/beady/issues) for upcoming features.
+
+# Uncomment to publish to Homebrew tap (requires separate tap repository)
+# brews:
+#   - repository:
+#       owner: maphew
+#       name: homebrew-tap
+#     homepage: https://github.com/maphew/beady
+#     description: A web UI for the beads issue tracker
+#     license: MIT
+
+# Uncomment to build Docker images
+# dockers:
+#   - image_templates:
+#       - "ghcr.io/maphew/beady:{{ .Version }}"
+#       - "ghcr.io/maphew/beady:latest"
+#     dockerfile: Dockerfile
+#     build_flag_templates:
+#       - "--pull"
+#       - "--label=org.opencontainers.image.created={{.Date}}"
+#       - "--label=org.opencontainers.image.title={{.ProjectName}}"
+#       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+#       - "--label=org.opencontainers.image.version={{.Version}}"

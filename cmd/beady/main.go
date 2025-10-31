@@ -28,6 +28,13 @@ import (
 	"github.com/steveyegge/beads"
 )
 
+// Build information set by GoReleaser via ldflags
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 var embedFS = beady.FS
 
 var tmplFS fs.FS
@@ -109,21 +116,29 @@ var store beads.Storage
 var devMode bool
 
 var help = flag.Bool("help", false, "Show help")
+var showVersion = flag.Bool("version", false, "Show version information")
 
 var detectedUsername string
 
 var srv *http.Server
 
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port] [-d] [--help]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s [database-path] [port] [-d] [--help] [--version]\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "Options:\n")
 	fmt.Fprintf(os.Stderr, "  -d, --dev       Enable development mode with live reload\n")
 	fmt.Fprintf(os.Stderr, "  -h, --help      Show help\n")
+	fmt.Fprintf(os.Stderr, "  --version       Show version information\n")
 	fmt.Fprintf(os.Stderr, "Examples:\n")
 	fmt.Fprintf(os.Stderr, "  %s                    # autodiscover database\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "  %s .beads/name.db   # specify database path\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "  %s .beads/name.db 8080  # specify path and port\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "  %s -d .beads/name.db 8080  # enable live reload\n", os.Args[0])
+}
+
+func printVersion() {
+	fmt.Printf("beady %s\n", version)
+	fmt.Printf("  commit: %s\n", commit)
+	fmt.Printf("  built:  %s\n", date)
 }
 
 var upgrader = websocket.Upgrader{
@@ -259,6 +274,10 @@ func main() {
 	flag.Parse()
 	if *help {
 		flag.Usage()
+		os.Exit(0)
+	}
+	if *showVersion {
+		printVersion()
 		os.Exit(0)
 	}
 
