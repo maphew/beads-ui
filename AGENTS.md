@@ -58,6 +58,7 @@ bd update beady-42 --priority 1 --json
 **Complete work:**
 ```bash
 bd close beady-42 --reason "Completed" --json
+bd comments add beaddy-42 "commit:{hash} - {commit message}"
 ```
 
 ### Issue Types
