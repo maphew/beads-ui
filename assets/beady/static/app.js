@@ -57,8 +57,8 @@ function applyFilters() {
 
 function initFilters() {
     const searchInput = document.getElementById('search-input');
-    const statusSelect = document.getElementById('status-select');
-    const prioritySelect = document.getElementById('priority-select');
+    const statusCheckboxes = document.querySelectorAll('input[name="status"]');
+    const priorityCheckboxes = document.querySelectorAll('input[name="priority"]');
 
     // Add debounced listener to search input (500ms delay)
     if (searchInput) {
@@ -68,25 +68,31 @@ function initFilters() {
         });
     }
 
-    // Add immediate listeners to selects (no delay)
-    if (statusSelect) {
-        statusSelect.addEventListener('change', applyFilters);
-    }
-    if (prioritySelect) {
-        prioritySelect.addEventListener('change', applyFilters);
-    }
+    // Add immediate listeners to checkboxes (no delay)
+    statusCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', applyFilters);
+    });
+    priorityCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', applyFilters);
+    });
 
     // Restore filter values from URL
     const urlParams = new URLSearchParams(window.location.search);
     if (searchInput && urlParams.has('search')) {
         searchInput.value = urlParams.get('search');
     }
-    if (statusSelect && urlParams.has('status')) {
-        statusSelect.value = urlParams.get('status');
-    }
-    if (prioritySelect && urlParams.has('priority')) {
-        prioritySelect.value = urlParams.get('priority');
-    }
+
+    // Restore checked status checkboxes
+    const statusValues = urlParams.getAll('status');
+    statusCheckboxes.forEach(checkbox => {
+        checkbox.checked = statusValues.includes(checkbox.value);
+    });
+
+    // Restore checked priority checkboxes
+    const priorityValues = urlParams.getAll('priority');
+    priorityCheckboxes.forEach(checkbox => {
+        checkbox.checked = priorityValues.includes(checkbox.value);
+    });
 }
 
 // Shutdown functionality

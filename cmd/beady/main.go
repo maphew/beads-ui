@@ -415,26 +415,49 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	// Build filter from URL parameters
 	searchQuery := r.URL.Query().Get("search")
+
+	// Get multiple status and priority values from checkboxes
+	statusValues := r.URL.Query()["status"]
+	priorityValues := r.URL.Query()["priority"]
+
+	// Fetch all issues without status/priority filter (we'll filter manually)
 	filter := beads.IssueFilter{}
-
-	// Status filter
-	if statusStr := r.URL.Query().Get("status"); statusStr != "" {
-		// Convert to lowercase to match the database storage format
-		s := beads.Status(strings.ToLower(statusStr))
-		filter.Status = &s
-	}
-
-	// Priority filter
-	if priorityStr := r.URL.Query().Get("priority"); priorityStr != "" {
-		if p, err := strconv.Atoi(priorityStr); err == nil {
-			filter.Priority = &p
-		}
-	}
-
 	issues, err := store.SearchIssues(ctx, searchQuery, filter)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Apply status filter if any checkboxes are selected
+	if len(statusValues) > 0 {
+		statusMap := make(map[string]bool)
+		for _, s := range statusValues {
+			statusMap[s] = true
+		}
+		filtered := make([]*beads.Issue, 0, len(issues))
+		for _, issue := range issues {
+			if statusMap[strings.ToLower(string(issue.Status))] {
+				filtered = append(filtered, issue)
+			}
+		}
+		issues = filtered
+	}
+
+	// Apply priority filter if any checkboxes are selected
+	if len(priorityValues) > 0 {
+		priorityMap := make(map[int]bool)
+		for _, p := range priorityValues {
+			if pInt, err := strconv.Atoi(p); err == nil {
+				priorityMap[pInt] = true
+			}
+		}
+		filtered := make([]*beads.Issue, 0, len(issues))
+		for _, issue := range issues {
+			if priorityMap[issue.Priority] {
+				filtered = append(filtered, issue)
+			}
+		}
+		issues = filtered
 	}
 
 	// Sort by UpdatedAt descending (most recently modified first)
@@ -623,30 +646,50 @@ func handleAPIIssues(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	searchQuery := ""
+	searchQuery := r.URL.Query().Get("search")
 
-	// Create a filter with default limit of 1000
+	// Get multiple status and priority values from checkboxes
+	statusValues := r.URL.Query()["status"]
+	priorityValues := r.URL.Query()["priority"]
+
+	// Fetch all issues without status/priority filter (we'll filter manually)
 	filter := beads.IssueFilter{}
-
-	// We'll handle filtering manually since we can't set the limit directly
-	if status := r.URL.Query().Get("status"); status != "" {
-		s := beads.Status(status)
-		filter.Status = &s
-	}
-
-	if priority := r.URL.Query().Get("priority"); priority != "" {
-		p, err := strconv.Atoi(priority)
-		if err != nil {
-			http.Error(w, "Invalid priority", http.StatusBadRequest)
-			return
-		}
-		filter.Priority = &p
-	}
-
 	issues, err := store.SearchIssues(ctx, searchQuery, filter)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Apply status filter if any checkboxes are selected
+	if len(statusValues) > 0 {
+		statusMap := make(map[string]bool)
+		for _, s := range statusValues {
+			statusMap[s] = true
+		}
+		filtered := make([]*beads.Issue, 0, len(issues))
+		for _, issue := range issues {
+			if statusMap[strings.ToLower(string(issue.Status))] {
+				filtered = append(filtered, issue)
+			}
+		}
+		issues = filtered
+	}
+
+	// Apply priority filter if any checkboxes are selected
+	if len(priorityValues) > 0 {
+		priorityMap := make(map[int]bool)
+		for _, p := range priorityValues {
+			if pInt, err := strconv.Atoi(p); err == nil {
+				priorityMap[pInt] = true
+			}
+		}
+		filtered := make([]*beads.Issue, 0, len(issues))
+		for _, issue := range issues {
+			if priorityMap[issue.Priority] {
+				filtered = append(filtered, issue)
+			}
+		}
+		issues = filtered
 	}
 
 	// Apply limit manually

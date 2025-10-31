@@ -30,7 +30,7 @@
             <article class="card"><h3>In Progress: {{.Stats.InProgressIssues}}</h3></article>
             <article class="card"><h3>Closed: {{.Stats.ClosedIssues}}</h3></article>
         </div>
-        <fieldset id="view-selector" role="radiogroup" aria-label="Select view">
+        <fieldset id="view-selector" role="group" aria-label="Select view">
             <legend>View:</legend>
             <label>
                 <input type="radio" name="view" value="grid" id="view-grid">
@@ -51,20 +51,46 @@
         <h2>All Issues</h2>
         <form method="GET" role="search" id="filter-form">
             <input type="search" name="search" id="search-input" placeholder="Search issues..." aria-label="Search issues">
-            <select name="status" id="status-select" aria-label="Filter by status">
-                <option value="">All Status</option>
-                <option value="Open">Open</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Closed">Closed</option>
-            </select>
-            <select name="priority" id="priority-select" aria-label="Filter by priority">
-                <option value="">All Priority</option>
-                <option value="0">0 - Critical</option>
-                <option value="1">1 - High</option>
-                <option value="2">2 - Medium</option>
-                <option value="3">3 - Low</option>
-                <option value="4">4 - Backlog</option>
-            </select>
+
+            <fieldset role="group" aria-label="Filter by status">
+                <legend>Status:</legend>
+                <label>
+                    <input type="checkbox" name="status" value="open" id="status-open">
+                    Open
+                </label>
+                <label>
+                    <input type="checkbox" name="status" value="in_progress" id="status-in-progress">
+                    In Progress
+                </label>
+                <label>
+                    <input type="checkbox" name="status" value="closed" id="status-closed">
+                    Closed
+                </label>
+            </fieldset>
+
+            <fieldset role="group" aria-label="Filter by priority">
+                <legend>Priority:</legend>
+                <label>
+                    <input type="checkbox" name="priority" value="0" id="priority-0">
+                    P0
+                </label>
+                <label>
+                    <input type="checkbox" name="priority" value="1" id="priority-1">
+                    P1
+                </label>
+                <label>
+                    <input type="checkbox" name="priority" value="2" id="priority-2">
+                    P2
+                </label>
+                <label>
+                    <input type="checkbox" name="priority" value="3" id="priority-3">
+                    P3
+                </label>
+                <label>
+                    <input type="checkbox" name="priority" value="4" id="priority-4">
+                    P4
+                </label>
+            </fieldset>
         </form>
         <div id="grid-view" style="display: none;">
             <div class="grid">
