@@ -42,7 +42,7 @@
                     <select id="status-select"
                             hx-post="/api/issue/status/{{.Issue.ID}}"
                             hx-trigger="change"
-                            hx-vals='js:{"status": event.target.value, "username": localStorage.getItem("beady-username") || ""}'
+                            hx-vals='js:{status: event.target.value, username: (localStorage.getItem("beady-username") || "")}'
                             hx-swap="none">
                         <option value="open" {{if eq (.Issue.Status | lower) "open"}}selected{{end}}>Open</option>
                         <option value="in_progress" {{if eq (.Issue.Status | lower) "in_progress"}}selected{{end}}>In Progress</option>
@@ -55,7 +55,7 @@
                     <select id="priority-select"
                             hx-post="/api/issue/priority/{{.Issue.ID}}"
                             hx-trigger="change"
-                            hx-vals='js:{"priority": parseInt(event.target.value), "username": localStorage.getItem("beady-username") || ""}'
+                            hx-vals='js:{priority: parseInt(event.target.value), username: (localStorage.getItem("beady-username") || "")}'
                             hx-swap="none">
                         <option value="0" {{if eq .Issue.Priority 0}}selected{{end}}>P0</option>
                         <option value="1" {{if eq .Issue.Priority 1}}selected{{end}}>P1</option>
@@ -98,7 +98,7 @@
                     {{end}}
                 </div>
                 <form hx-post="/api/issue/notes/{{.Issue.ID}}"
-                      hx-vals='js:{"notes": document.querySelector("#notes-text").value, "username": localStorage.getItem("beady-username") || ""}'
+                      hx-vals='js:{notes: document.querySelector("#notes-text").value, username: (localStorage.getItem("beady-username") || "")}'
                       hx-on::after-request="if(event.detail.successful) { window.location.reload(); }">
                     <textarea id="notes-text" name="notes" placeholder="Add or update notes..." rows="4">{{.Issue.Notes}}</textarea>
                     <button type="submit">Save Notes</button>
@@ -174,7 +174,7 @@
                 {{end}}
             </div>
             <form hx-post="/api/issue/comments/{{.Issue.ID}}"
-                  hx-vals='js:{"text": document.querySelector("#comment-text").value, "username": localStorage.getItem("beady-username") || ""}'
+                  hx-vals='js:{text: document.querySelector("#comment-text").value, username: (localStorage.getItem("beady-username") || "")}'
                   hx-on::after-request="if(event.detail.successful) { document.querySelector('#comment-text').value = ''; window.location.reload(); }"
                   class="comment-form">
                 <textarea id="comment-text" name="text" placeholder="Add a comment..." rows="3" required></textarea>
@@ -205,7 +205,7 @@
                 <h3>Close Issue</h3>
             </header>
             <form hx-post="/api/issue/close/{{.Issue.ID}}"
-                  hx-vals='js:{"reason": document.querySelector("#close-reason").value, "username": localStorage.getItem("beady-username") || ""}'
+                  hx-vals='js:{reason: document.querySelector("#close-reason").value, username: (localStorage.getItem("beady-username") || "")}'
                   hx-on::after-request="if(event.detail.successful) { window.location.reload(); }">
                 <label for="close-reason">Reason for closing (optional):</label>
                 <input type="text" id="close-reason" name="reason" placeholder="e.g., completed, duplicate, won't fix">

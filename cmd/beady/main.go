@@ -1207,15 +1207,19 @@ func handleAPIAddComment(w http.ResponseWriter, r *http.Request) {
 
 	// Execute bd comments add command
 	args := []string{"comments", "add", issueID, req.Text}
-	output, err := executeBDCommandJSON(args...)
+	output, err := executeBDCommand(args...)
 	if err != nil {
 		log.Printf("Error adding comment: %v", err)
 		http.Error(w, fmt.Sprintf("Failed to add comment: %v", err), http.StatusInternalServerError)
 		return
 	}
 
+	// bd comments add doesn't return JSON, so wrap the response
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(*output)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": string(output),
+	})
 }
 
 // handleAPIUpdateNotes handles POST requests to update an issue's notes.

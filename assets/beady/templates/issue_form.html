@@ -38,14 +38,14 @@
             <form id="create-issue-form"
                   hx-post="/api/issues/create"
                   hx-vals='js:{
-                      "title": document.querySelector("#title").value,
-                      "description": document.querySelector("#description").value,
-                      "type": document.querySelector("#type").value,
-                      "priority": parseInt(document.querySelector("#priority").value),
-                      "labels": document.querySelector("#labels").value.split(",").map(s => s.trim()).filter(s => s),
-                      "design": document.querySelector("#design").value,
-                      "acceptance": document.querySelector("#acceptance").value,
-                      "username": localStorage.getItem("beady-username") || ""
+                      title: document.querySelector("#title").value,
+                      description: document.querySelector("#description").value,
+                      type: document.querySelector("#type").value,
+                      priority: parseInt(document.querySelector("#priority").value),
+                      labels: document.querySelector("#labels").value.split(",").map(s => s.trim()).filter(s => s),
+                      design: document.querySelector("#design").value,
+                      acceptance: document.querySelector("#acceptance").value,
+                      username: (localStorage.getItem("beady-username") || "")
                   }'
                   hx-on::after-request="if(event.detail.successful) {
                       const response = JSON.parse(event.detail.xhr.responseText);
