@@ -1,6 +1,6 @@
 module github.com/maphew/beady
 
-go 1.24.0
+go 1.22.9
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0
