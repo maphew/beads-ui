@@ -4,15 +4,12 @@ A web UI for the beads issue tracker.
 
 ## Overview
 
-Beady is a web interface for [beads](https://github.com/steveyegge/beads), the issue
-tracker built for LLM agents. Beady provides a graphical interface for browsing and
-visualizing bead issues, dependencies, and work status.
+[Beads](https://github.com/steveyegge/beads) is a lightweight memory upgrade and issue tracking system for coding agents. **Beady** is an interface into beads for humans when they're not in the CLI, providing a graphical interface for browsing and visualizing bead issues, dependencies, and work status.
 
-I've long been enamoured of Fossil-SCM and it's github-in-a-box nature, featuring a first class CLI and a strong web ui with commit timeline and issue tracker all wrapped up in a single executable (plus the db). It strikes me that Beads is excellently poised to do the same thing. This project is an experiment to see what that might entail. Feedback welcome.
+I've long been enamoured of Fossil-SCM and it's github-in-a-box nature, featuring a first class CLI and a strong web ui with commit timeline and issue tracker all wrapped up in a single executable (plus the db). It strikes me that Beads is excellently poised to do the same thing. Beady is an experiment to see what that might entail. Feedback welcome.
 
 The PR which started it: 
 https://github.com/steveyegge/beads/pull/77
-
 
 _--> Also see [mantoni/beads-ui](https://github.com/mantoni/beads-ui from @mantoni. **`bdui`** has a higher development velocity than beady and a bigger feature set. You might like that one better. I'm going to keep poking away at beady anyway as I want to pursue the everything in one file idea._
 
