@@ -1,0 +1,54 @@
+# Fly.io Configuration for Beady
+# Cloud backup/sync endpoint for local-first Beads issue tracker
+
+app = 'beady-backup'
+primary_region = 'iad'  # Ashburn, Virginia (change to your preferred region)
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  BEADS_DIR = "/data/.beads"
+
+# HTTP Service Configuration
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'      # Stop machines when idle to save costs
+  auto_start_machines = true       # Auto-start on new requests
+  min_machines_running = 0         # No always-on machines (cost optimization)
+  
+  # Concurrency settings
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  # Health check
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    timeout = "5s"
+    method = "GET"
+    path = "/"
+    protocol = "http"
+
+# Volume mount for persistent Beads database
+[[mounts]]
+  source = "beady_data"
+  destination = "/data"
+  initial_size = "1gb"              # 1GB free tier
+  snapshot_retention = 5            # Keep snapshots for 5 days
+  scheduled_snapshots = true        # Enable automatic daily snapshots
+  
+  # Auto-extend configuration (optional)
+  auto_extend_size_threshold = 80   # Extend at 80% usage
+  auto_extend_size_increment = "1GB"
+  auto_extend_size_limit = "3GB"    # Max size limit
+
+# VM Configuration (free tier)
+[vm]
+  size = 'shared-cpu-1x'   # 1 shared vCPU, 256MB RAM (free tier)
+  memory = '256mb'
+  cpus = 1
