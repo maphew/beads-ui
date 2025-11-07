@@ -46,9 +46,23 @@ All write operations are performed by executing the `bd` CLI, ensuring guarantee
 - **bd CLI** in PATH (required for write operations) - install from [github.com/steveyegge/beads](https://github.com/steveyegge/beads)
 - A beads database file (will be auto-discovered from `.beads/` directory)
 
-### Download Pre-built Binaries (Recommended)
+### Quick Install (Recommended)
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/maphew/beady/releases):
+Run this one-liner to automatically download and install the latest beady binary for your platform:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/maphew/beady/main/install.sh | bash
+```
+
+This script will:
+- Detect your OS and architecture
+- Download the appropriate binary from GitHub Releases
+- Install it to `~/bin/beady` (or `/usr/local/bin` if available)
+- Make it executable and ready to use
+
+### Download Pre-built Binaries
+
+If you prefer manual installation, download the latest release for your platform from [GitHub Releases](https://github.com/maphew/beady/releases):
 
 - **Windows**: `beady_VERSION_Windows_x86_64.zip` (or `i386` for 32-bit)
 - **macOS**: `beady_VERSION_Darwin_x86_64.tar.gz` (or `arm64` for Apple Silicon)
