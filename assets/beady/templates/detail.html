@@ -186,7 +186,11 @@
             <h3>Recent Events</h3>
             <ul>
                 {{range .Events}}
-                <li>{{.CreatedAt}}: {{.EventType}}</li>
+                <li>
+                    <strong>{{.CreatedAt}}</strong>{{if .Actor}} by {{.Actor}}{{end}}: {{.EventType}}
+                    {{if .OldValue}}<br>{{.OldValue}} → {{.NewValue}}{{end}}
+                    {{if .Comment}}<br><em>{{.Comment}}</em>{{end}}
+                </li>
                 {{end}}
             </ul>
             {{if not .Events}}<p>No recent events.</p>{{end}}
