@@ -2,11 +2,115 @@
 
 # beady installer script
 # Installs the latest beady binary for your platform
+# Usage: ./install.sh [uninstall [--yes]]
 
 set -e
 
 REPO="maphew/beady"
 BINARY_NAME="beady"
+
+# Uninstall function
+uninstall() {
+    local unattended=${1:-}
+
+    # Search for beady in PATH (deduplicated)
+    local found_paths=()
+    local seen_paths=()
+    IFS=':' read -ra path_dirs <<< "$PATH"
+    for dir in "${path_dirs[@]}"; do
+        # Skip empty directories
+        [ -z "$dir" ] && continue
+        local full_path="$dir/$BINARY_NAME"
+        # Check if we've already processed this exact path
+        if [[ ! " ${seen_paths[@]} " =~ " ${full_path} " ]]; then
+            seen_paths+=("$full_path")
+            if [ -f "$full_path" ] || [ -f "$dir/$BINARY_NAME.exe" ]; then
+                found_paths+=("$full_path")
+            fi
+        fi
+    done
+
+    # Also check common install locations
+    local common_locations=(
+        "$HOME/.local/bin/$BINARY_NAME"
+        "$HOME/bin/$BINARY_NAME"
+        "/usr/local/bin/$BINARY_NAME"
+    )
+    for loc in "${common_locations[@]}"; do
+        if [ -f "$loc" ] && [[ ! " ${found_paths[@]} " =~ " ${loc} " ]]; then
+            found_paths+=("$loc")
+        fi
+    done
+
+    if [ ${#found_paths[@]} -eq 0 ]; then
+        echo "No beady installation found in PATH or common locations"
+        exit 1
+    fi
+
+    if [ ${#found_paths[@]} -eq 1 ]; then
+        echo "Found beady at: ${found_paths[0]}"
+    else
+        echo "Found multiple beady installations:"
+        for i in "${!found_paths[@]}"; do
+            echo "  $((i + 1)). ${found_paths[$i]}"
+        done
+    fi
+
+    local target_path="${found_paths[0]}"
+
+    # If multiple found and not unattended, let user choose
+    if [ ${#found_paths[@]} -gt 1 ] && [ "$unattended" != "--yes" ]; then
+        read -p "Remove all found installations? (y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Aborted"
+            exit 0
+        fi
+    elif [ "$unattended" != "--yes" ]; then
+        read -p "Remove $target_path? (y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Aborted"
+            exit 0
+        fi
+    fi
+
+    # Remove all found installations
+    local removed_count=0
+    for path in "${found_paths[@]}"; do
+        if [ -f "$path" ]; then
+            rm -f "$path"
+            echo "Removed: $path"
+            ((removed_count++))
+        fi
+    done
+
+    if [ $removed_count -gt 0 ]; then
+        echo "Uninstallation complete! Removed $removed_count beady installation(s)."
+    else
+        echo "No files were removed"
+        exit 1
+    fi
+}
+
+# Handle uninstall command
+if [ "$1" = "uninstall" ]; then
+    uninstall "$2"
+    exit 0
+elif [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "beady installer script"
+    echo ""
+    echo "Usage:"
+    echo "  ./install.sh                  Install the latest beady release"
+    echo "  ./install.sh uninstall        Uninstall beady (interactive)"
+    echo "  ./install.sh uninstall --yes  Uninstall beady (unattended)"
+    echo "  ./install.sh --help           Show this help message"
+    exit 0
+elif [ -n "$1" ]; then
+    echo "Unknown option: $1"
+    echo "Use ./install.sh --help for usage information"
+    exit 1
+fi
 
 # Detect OS and architecture
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -86,13 +190,13 @@ else
     tar -xzf "beady.$EXT"
 fi
 
-# Install to ~/bin or /usr/local/bin
-INSTALL_DIR="${INSTALL_DIR:-$HOME/bin}"
+# Install to ~/.local/bin (XDG standard) or /usr/local/bin
+INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 if [ ! -d "$INSTALL_DIR" ]; then
     INSTALL_DIR="/usr/local/bin"
     if [ ! -w "$INSTALL_DIR" ]; then
-        echo "Installing to $HOME/bin (you may need to add it to PATH)"
-        INSTALL_DIR="$HOME/bin"
+        echo "Installing to $HOME/.local/bin (you may need to add it to PATH)"
+        INSTALL_DIR="$HOME/.local/bin"
         mkdir -p "$INSTALL_DIR"
     fi
 fi
