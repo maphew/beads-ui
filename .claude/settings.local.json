@@ -28,7 +28,17 @@
       "Bash(git log:*)",
       "Bash(where:*)",
       "Bash(./bin/beady:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Skill(using-git-worktrees)",
+      "Bash(git worktree:*)",
+      "Bash(go mod download:*)",
+      "Bash(cd /var/home/matt/dev/beady/.worktrees/fix/closed-issue-reason && go test:*)",
+      "Bash(go mod graph:*)",
+      "Bash(sqlite3 test.db:*)",
+      "Bash(git -C .worktrees/closed-issue-reason log --oneline -5)",
+      "Bash(git -C .worktrees/closed-issue-reason status:*)",
+      "Bash(cat:*)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [],
     "ask": []

@@ -7,3 +7,6 @@ bin/
 # IDE files
 *.swp
 *.swo
+
+# Git worktrees
+.worktrees/
