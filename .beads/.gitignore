@@ -4,15 +4,15 @@
 *.db-wal
 *.db-shm
 
+# intermediate sync & merge files
+*.base.*
+*.left.*
+
 # Daemon runtime files
 daemon.lock
 daemon.log
 daemon.pid
 bd.sock
-
-# Legacy database files
-db.sqlite
-bd.db
 
 # Keep JSONL exports and config (source of truth for git)
 !*.jsonl
