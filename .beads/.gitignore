@@ -4,10 +4,6 @@
 *.db-wal
 *.db-shm
 
-# intermediate sync & merge files
-*.base.*
-*.left.*
-
 # Daemon runtime files
 daemon.lock
 daemon.log
@@ -18,3 +14,7 @@ bd.sock
 !*.jsonl
 !metadata.json
 !config.json
+
+# intermediate sync & merge files
+*.base.*
+*.left.*
