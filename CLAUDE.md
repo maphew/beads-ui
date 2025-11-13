@@ -239,10 +239,11 @@ Write operations use [HTMX](https://htmx.org/) for dynamic updates:
 
 **Issue Detail Page** ([detail.html](assets/beady/templates/detail.html)):
 - Status/Priority dropdowns with inline update
-- Close button with modal dialog for reason
+- Close button with modal dialog for reason (reason stored in event audit trail)
 - Comment form that reloads page on submit
 - Label add/remove with inline controls
 - Notes section with edit form in collapsible details
+- Recent Events section showing audit trail with timestamps, actors, event types, and details (e.g., closing reasons for StatusChanged events)
 - All actions include username from localStorage
 
 **Issue Creation** ([issue_form.html](assets/beady/templates/issue_form.html)):
